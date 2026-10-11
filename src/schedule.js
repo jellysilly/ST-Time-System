@@ -3,6 +3,7 @@
 // до 02:00 вторника.
 
 import { DAY, ALL_DAYS, dayOf, minutesOf, weekdayOf, fmtHM, LOCALES } from './calendar.js';
+import { t as tr, uiLang } from './i18n.js';
 
 const daysOf = (s) => (Array.isArray(s.days) && s.days.length ? s.days : ALL_DAYS);
 
@@ -68,7 +69,7 @@ export function segmentsForDay(npc, day) {
 }
 
 /** «пн–пт», «вых. пн», «пн, ср, пт» */
-export function fmtDays(days, lang = 'ru') {
+export function fmtDays(days, lang = uiLang()) {
     const L = LOCALES[lang] ?? LOCALES.ru;
     const list = Array.isArray(days) && days.length ? [...days].sort() : ALL_DAYS;
     if (list.length === 7) return '';
@@ -81,16 +82,16 @@ export function fmtDays(days, lang = 'ru') {
     return list.map(d => L.wdShort[d]).join(', ');
 }
 
-export function fmtShift(s, lang = 'ru') {
-    const hours = s.from === s.to ? (lang === 'en' ? 'all day' : 'круглосуточно') : `${fmtHM(s.from)}–${fmtHM(s.to)}`;
+export function fmtShift(s, lang = uiLang()) {
+    const hours = s.from === s.to ? (lang === 'en' ? 'around the clock' : 'круглосуточно') : `${fmtHM(s.from)}–${fmtHM(s.to)}`;
     const days = fmtDays(s.days, lang);
     return days ? `${hours} · ${days}` : hours;
 }
 
-export const fmtHours = (npc, lang = 'ru') => (npc.shifts ?? []).map(s => fmtShift(s, lang)).join(' / ');
+export const fmtHours = (npc, lang = uiLang()) => (npc.shifts ?? []).map(s => fmtShift(s, lang)).join(' / ');
 
 /** Когда придёт: «в 18:00», «завтра в 08:00», «в пт в 08:00». */
-export function fmtNextStart(next, t, lang = 'ru') {
+export function fmtNextStart(next, t, lang = uiLang()) {
     if (!next) return '';
     const L = LOCALES[lang] ?? LOCALES.ru;
     const diff = dayOf(next.at) - dayOf(t);
@@ -108,12 +109,12 @@ export function fmtNextStart(next, t, lang = 'ru') {
 /** Короткий статус для карточки: «На месте · до 02:00», «Придёт в 18:00», «Выходной». */
 export function statusLabel(st, t) {
     switch (st.kind) {
-        case 'present': return st.until === null ? 'На месте · весь день' : `На месте · до ${fmtHM(minutesOf(st.until))}`;
+        case 'present': return st.until === null ? tr('st.presentAllDay') : tr('st.presentUntil', { time: fmtHM(minutesOf(st.until)) });
         case 'away': {
             const when = fmtNextStart(st.next, t);
-            return when ? 'Придёт ' + when : 'Нет на месте';
+            return when ? tr('st.comes', { when }) : tr('st.away');
         }
-        case 'off': return 'Выходной';
-        default: return 'Без расписания';
+        case 'off': return tr('st.off');
+        default: return tr('st.none');
     }
 }

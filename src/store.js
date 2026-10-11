@@ -7,11 +7,13 @@
 //    удаления и ветки сами «откатывают» время: текущее время = снимок последнего сообщения.
 
 import { DAY, ALL_DAYS, makeTime, dayOf, split, daysInMonth } from './calendar.js';
+import { t as tr } from './i18n.js';
 
 export const KEY = 'time_system';
 
 export const DEFAULT_SETTINGS = Object.freeze({
     enabled: true,
+    uiLang: 'auto',            // auto | ru | en
     autoAdvance: true,
     autoMinutes: 10,
     detection: 'tag',          // tag | analysis | off
@@ -23,7 +25,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
     injectPosition: 'chat',    // chat | after | before
     injectDepth: 1,
     injectRole: 'system',      // system | user | assistant
-    promptLang: 'ru',
+    promptLang: 'auto',        // auto | ru | en
     includeNpcs: true,
     includeEvents: true,
     template: '',
@@ -115,7 +117,7 @@ function normalizeShift(s) {
 export function normalizeNpc(n) {
     return {
         id: n?.id || uid(),
-        name: String(n?.name ?? '').trim() || 'Без имени',
+        name: String(n?.name ?? '').trim() || tr('unnamed'),
         role: String(n?.role ?? ''),
         place: String(n?.place ?? ''),
         elsewhere: String(n?.elsewhere ?? ''),
@@ -130,7 +132,7 @@ export function normalizeEvent(e) {
         id: e?.id || uid(),
         day: Number.isFinite(e?.day) ? Math.floor(e.day) : dayOf(now() ?? 0),
         time: String(e?.time ?? ''),
-        name: String(e?.name ?? '').trim() || 'Событие',
+        name: String(e?.name ?? '').trim() || tr('ev.title'),
         repeat: ['none', 'weekly', 'monthly', 'yearly'].includes(e?.repeat) ? e.repeat : 'none',
     };
 }
@@ -400,10 +402,10 @@ export function exportWorld() {
 /** mode: 'replace' — заменить NPC и события, 'merge' — добавить новые (по имени / id). */
 export function importWorld(data, mode = 'merge') {
     const st = chatState();
-    if (!st || !data || typeof data !== 'object') throw new Error('Пустые данные');
+    if (!st || !data || typeof data !== 'object') throw new Error(tr('err.empty'));
     const npcs = Array.isArray(data.npcs) ? data.npcs.map(normalizeNpc) : [];
     const events = Array.isArray(data.events) ? data.events.map(normalizeEvent) : [];
-    if (!npcs.length && !events.length) throw new Error('В файле нет NPC и событий');
+    if (!npcs.length && !events.length) throw new Error(tr('err.noData'));
     if (mode === 'replace') {
         st.npcs = npcs;
         st.events = events;
@@ -429,12 +431,12 @@ export const canUseCard = () => {
 export async function saveTemplateToCard() {
     const c = ctx();
     const st = chatState();
-    if (!st || !canUseCard()) throw new Error('Шаблон можно сохранить только в чате с одним персонажем');
+    if (!st || !canUseCard()) throw new Error(tr('err.cardOnlySingle'));
     await c.writeExtensionField(c.characterId, KEY, { start: st.base, npcs: st.npcs, events: st.events });
 }
 
 export function loadTemplateFromCard(mode = 'replace') {
     const tpl = cardTemplate();
-    if (!tpl) throw new Error('В карточке персонажа нет сохранённого шаблона');
+    if (!tpl) throw new Error(tr('err.noTemplate'));
     return importWorld(tpl, mode);
 }

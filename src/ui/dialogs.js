@@ -2,8 +2,9 @@
 // события календаря и карточки NPC. На телефоне окна выезжают снизу как «шторка».
 
 import { h, icon, switchButton, timeInput } from './dom.js';
+import { t as tr } from '../i18n.js';
 import {
-    DAY, LOCALES, split, makeTime, daysInMonth, parseHM, fmtWeekday, fmtDateShort, fmtTime,
+    DAY, locale, split, makeTime, daysInMonth, parseHM, fmtWeekday, fmtDateShortYear, fmtTime,
     fmtDelta, dayOf, ALL_DAYS, cap,
 } from '../calendar.js';
 import { normalizeNpc, uid, ctx, getSnap, nowAt, setMessageTime, removeMessageTime } from '../store.js';
@@ -44,7 +45,7 @@ export function openModal({ title, kicker, body, actions = [], dismissValue = nu
         const entry = { dismiss: () => close(dismissValue) };
         bind?.({ dismiss: entry.dismiss });
 
-        const closeBtn = h('button', { type: 'button', class: 'ts-icon-btn ts-modal-close', 'aria-label': 'Закрыть', onClick: () => close(dismissValue) }, icon('close', { size: 18 }));
+        const closeBtn = h('button', { type: 'button', class: 'ts-icon-btn ts-modal-close', 'aria-label': tr('app.close'), onClick: () => close(dismissValue) }, icon('close', { size: 18 }));
         const header = h('div', { class: 'ts-modal-head' },
             h('div', { class: 'ts-modal-titles' },
                 kicker ? h('div', { class: 'ts-kicker' }, kicker) : null,
@@ -89,10 +90,10 @@ function field(label, control, hint) {
 /** Поля «день · месяц · год» и (опционально) «время» с днём недели и быстрыми кнопками. */
 export function dateTimeField(t, { withTime = true, realNow = false, onChange } = {}) {
     const p = split(t);
-    const day = h('input', { type: 'number', inputmode: 'numeric', min: 1, max: 31, value: p.d, class: 'ts-input ts-in-day', 'aria-label': 'День' });
-    const month = h('select', { class: 'ts-input ts-in-month', 'aria-label': 'Месяц' },
-        LOCALES.ru.monthsGen.map((name, i) => h('option', { value: String(i + 1), selected: i + 1 === p.m }, name)));
-    const year = h('input', { type: 'number', inputmode: 'numeric', value: p.y, class: 'ts-input ts-in-year', 'aria-label': 'Год' });
+    const day = h('input', { type: 'number', inputmode: 'numeric', min: 1, max: 31, value: p.d, class: 'ts-input ts-in-day', 'aria-label': tr('dt.day') });
+    const month = h('select', { class: 'ts-input ts-in-month', 'aria-label': tr('dt.month') },
+        locale().monthsGen.map((name, i) => h('option', { value: String(i + 1), selected: i + 1 === p.m }, name)));
+    const year = h('input', { type: 'number', inputmode: 'numeric', value: p.y, class: 'ts-input ts-in-year', 'aria-label': tr('dt.year') });
     const time = withTime ? timeInput(p.minutes) : null;
     const weekday = h('span', { class: 'ts-dt-weekday' });
 
@@ -125,12 +126,12 @@ export function dateTimeField(t, { withTime = true, realNow = false, onChange } 
 
     const chips = withTime
         ? h('div', { class: 'ts-chips' },
-            [['−1 ч', -60], ['+15 мин', 15], ['+1 ч', 60], ['+1 день', DAY]].map(([label, delta]) =>
+            [[tr('q.minusHour'), -60], [tr('q.plus15'), 15], [tr('q.plusHour'), 60], [tr('q.plusDay'), DAY]].map(([label, delta]) =>
                 h('button', { type: 'button', class: 'ts-chip', onClick: () => { const v = read(); if (v !== null) write(v + delta); } }, label)),
             realNow ? h('button', {
-                type: 'button', class: 'ts-chip', title: 'Дата и время вашего устройства',
+                type: 'button', class: 'ts-chip', title: tr('q.realTitle'),
                 onClick: () => { const d = new Date(); write(makeTime(d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours() * 60 + d.getMinutes())); },
-            }, 'Реальное время') : null)
+            }, tr('q.real')) : null)
         : null;
 
     const el = h('div', { class: 'ts-dt' },
@@ -141,26 +142,26 @@ export function dateTimeField(t, { withTime = true, realNow = false, onChange } 
     return { el, get value() { return read(); }, set: write, focus: () => (time ?? day).focus() };
 }
 
-const fmtPoint = (t) => `${fmtDateShort(t)} ${split(t).y} · ${fmtTime(t)}`;
+const fmtPoint = (t) => `${fmtDateShortYear(t)} · ${fmtTime(t)}`;
 
 /** Ручная правка времени. Возвращает новое время, 'remove' или null. */
-export async function editTimeDialog({ title = 'Время мира', kicker = 'ВРЕМЯ МИРА', t, before = null, allowRemove = false, note = '' }) {
+export async function editTimeDialog({ title = tr('nowEdit.title'), kicker = tr('k.worldTime'), t, before = null, allowRemove = false, note = '' }) {
     const diff = h('span', { class: 'ts-diff' });
     const dt = dateTimeField(t, {
         realNow: true,
         onChange: (v) => {
-            diff.textContent = before === null || v === null ? '' : `${fmtDelta(v - before)} от предыдущей отметки`;
+            diff.textContent = before === null || v === null ? '' : tr('dlg.fromPrev', { delta: fmtDelta(v - before) });
         },
     });
     const body = [
         note ? h('p', { class: 'ts-p' }, note) : null,
         dt.el,
-        before !== null ? h('div', { class: 'ts-compare-mini' }, `До этого: ${fmtPoint(before)}`, h('br'), diff) : null,
+        before !== null ? h('div', { class: 'ts-compare-mini' }, tr('dlg.before', { when: fmtPoint(before) }), h('br'), diff) : null,
     ];
     const actions = [];
-    if (allowRemove) actions.push({ label: 'Убрать отметку', kind: 'ghost', value: 'remove' });
-    actions.push({ label: 'Отмена', kind: 'ghost', value: null, push: true });
-    actions.push({ label: 'Сохранить', kind: 'primary', value: () => dt.value, validate: () => dt.value !== null });
+    if (allowRemove) actions.push({ label: tr('dlg.removeMark'), kind: 'ghost', value: 'remove' });
+    actions.push({ label: tr('btn.cancel'), kind: 'ghost', value: null, push: true });
+    actions.push({ label: tr('btn.save'), kind: 'primary', value: () => dt.value, validate: () => dt.value !== null });
     return openModal({ title, kicker, body, actions });
 }
 
@@ -169,12 +170,12 @@ export async function editMessageTime(index) {
     const snap = getSnap(ctx().chat?.[index]);
     if (!snap || !Number.isFinite(snap.t)) return;
     const res = await editTimeDialog({
-        title: `После сообщения #${index}`,
-        kicker: 'ВРЕМЯ МИРА',
+        title: tr('msgEdit.title', { n: index }),
+        kicker: tr('k.worldTime'),
         t: snap.t,
         before: nowAt(index - 1),
         allowRemove: true,
-        note: snap.tag ? `Отметка модели: [time: ${snap.tag}]` : '',
+        note: snap.tag ? tr('msgEdit.tagNote', { tag: snap.tag }) : '',
     });
     if (res === 'remove') removeMessageTime(index);
     else if (Number.isFinite(res)) setMessageTime(index, res);
@@ -191,68 +192,68 @@ export async function confirmTimeDialog({ before, proposed, source, who, bind = 
         if (v === null) { toRow.textContent = '—'; deltaEl.textContent = ''; return; }
         toRow.textContent = fmtPoint(v);
         const newDay = dayOf(v) !== dayOf(before);
-        deltaEl.textContent = fmtDelta(v - before) + (newDay ? ' · новый день' : '');
+        deltaEl.textContent = fmtDelta(v - before) + (newDay ? tr('confirm.newDay') : '');
         deltaEl.classList.toggle('is-new-day', newDay);
     };
     const dt = dateTimeField(proposed, { onChange: refresh });
     let dontAsk = false;
 
     const body = [
-        h('p', { class: 'ts-p' }, who ? `${who}: время в истории изменилось.` : 'Время в истории изменилось.', ' Записать в календарь?'),
+        h('p', { class: 'ts-p' }, who ? tr('confirm.who', { who }) : tr('confirm.noWho'), tr('confirm.ask')),
         source ? h('div', { class: 'ts-source' }, source) : null,
         h('div', { class: 'ts-compare' },
-            h('div', { class: 'ts-compare-row' }, h('span', { class: 'ts-compare-key' }, 'Было'), h('div', { class: 'ts-compare-val is-muted' }, fmtPoint(before))),
-            h('div', { class: 'ts-compare-row' }, h('span', { class: 'ts-compare-key' }, 'Станет'), h('div', null, toRow, deltaEl))),
-        h('div', { class: 'ts-field-label' }, 'Поправить, если нужно'),
+            h('div', { class: 'ts-compare-row' }, h('span', { class: 'ts-compare-key' }, tr('confirm.was')), h('div', { class: 'ts-compare-val is-muted' }, fmtPoint(before))),
+            h('div', { class: 'ts-compare-row' }, h('span', { class: 'ts-compare-key' }, tr('confirm.will')), h('div', null, toRow, deltaEl))),
+        h('div', { class: 'ts-field-label' }, tr('confirm.fix')),
         dt.el,
         h('div', { class: 'ts-row ts-row-tight' },
             h('div', { class: 'ts-row-text' },
-                h('span', { class: 'ts-row-title' }, 'Больше не спрашивать'),
-                h('span', { class: 'ts-row-hint' }, 'Можно снова включить в настройках')),
-            switchButton({ on: false, label: 'Больше не спрашивать', onToggle: (v) => { dontAsk = v; } })),
+                h('span', { class: 'ts-row-title' }, tr('confirm.dontAsk')),
+                h('span', { class: 'ts-row-hint' }, tr('confirm.dontAskHint'))),
+            switchButton({ on: false, label: tr('confirm.dontAsk'), onToggle: (v) => { dontAsk = v; } })),
     ];
     refresh(proposed);
 
     return openModal({
-        title: 'Записать новое время?',
-        kicker: 'СМЕНА ВРЕМЕНИ',
+        title: tr('confirm.title'),
+        kicker: tr('k.timeChange'),
         body,
         bind,
         dismissValue: { action: 'later' },
         actions: [
-            { label: 'Не менять', kind: 'ghost', push: true, value: () => ({ action: 'reject', dontAsk }) },
-            { label: 'Записать', kind: 'primary', value: () => ({ action: 'accept', t: dt.value, dontAsk }), validate: () => dt.value !== null },
+            { label: tr('confirm.reject'), kind: 'ghost', push: true, value: () => ({ action: 'reject', dontAsk }) },
+            { label: tr('confirm.accept'), kind: 'primary', value: () => ({ action: 'accept', t: dt.value, dontAsk }), validate: () => dt.value !== null },
         ],
     });
 }
 
-const REPEATS = [['none', 'Не повторять'], ['weekly', 'Каждую неделю'], ['monthly', 'Каждый месяц'], ['yearly', 'Каждый год']];
+const REPEATS = ['none', 'weekly', 'monthly', 'yearly'];
 
 /** Создание/правка события. Возвращает событие, { delete: true } или null. */
 export async function eventDialog(ev, defaultDay) {
-    const name = h('input', { type: 'text', class: 'ts-input', value: ev?.name ?? '', placeholder: 'Ярмарка на рыночной площади', 'data-autofocus': true, maxlength: 200 });
-    const when = h('input', { type: 'text', class: 'ts-input', value: ev?.time ?? '', placeholder: '19:00, 10:00–16:00, весь день, ночь…', maxlength: 60 });
+    const name = h('input', { type: 'text', class: 'ts-input', value: ev?.name ?? '', placeholder: tr('ev.namePh'), 'data-autofocus': true, maxlength: 200 });
+    const when = h('input', { type: 'text', class: 'ts-input', value: ev?.time ?? '', placeholder: tr('ev.whenPh'), maxlength: 60 });
     const date = dateTimeField((ev?.day ?? defaultDay) * DAY, { withTime: false });
-    const repeat = h('select', { class: 'ts-input' }, REPEATS.map(([v, l]) => h('option', { value: v, selected: (ev?.repeat ?? 'none') === v }, l)));
+    const repeat = h('select', { class: 'ts-input' }, REPEATS.map((v) => h('option', { value: v, selected: (ev?.repeat ?? 'none') === v }, tr(`rep.${v}`))));
 
     const actions = [];
-    if (ev) actions.push({ label: 'Удалить', kind: 'danger', value: { delete: true } });
-    actions.push({ label: 'Отмена', kind: 'ghost', value: null, push: true });
+    if (ev) actions.push({ label: tr('btn.delete'), kind: 'danger', value: { delete: true } });
+    actions.push({ label: tr('btn.cancel'), kind: 'ghost', value: null, push: true });
     actions.push({
-        label: 'Сохранить',
+        label: tr('btn.save'),
         kind: 'primary',
         validate: () => { const ok = !!name.value.trim() && date.value !== null; if (!ok) name.focus(); return ok; },
         value: () => ({ id: ev?.id, name: name.value.trim(), time: when.value.trim(), day: dayOf(date.value), repeat: repeat.value }),
     });
 
     return openModal({
-        title: ev ? 'Событие' : 'Новое событие',
-        kicker: 'КАЛЕНДАРЬ МИРА',
+        title: ev ? tr('ev.title') : tr('ev.new'),
+        kicker: tr('k.calendar'),
         body: [
-            field('Что происходит', name),
-            field('Когда', when, 'Свободный текст — так его увидит ИИ.'),
-            h('div', { class: 'ts-field' }, h('span', { class: 'ts-field-label' }, 'Дата'), date.el),
-            field('Повтор', repeat),
+            field(tr('ev.what'), name),
+            field(tr('ev.when'), when, tr('ev.whenHint')),
+            h('div', { class: 'ts-field' }, h('span', { class: 'ts-field-label' }, tr('ev.date')), date.el),
+            field(tr('ev.repeat'), repeat),
         ],
         actions,
     });
@@ -260,9 +261,9 @@ export async function eventDialog(ev, defaultDay) {
 
 function dayChips(days, onChange) {
     const set = new Set(days?.length ? days : ALL_DAYS);
-    const wrap = h('div', { class: 'ts-daychips', role: 'group', 'aria-label': 'Дни недели' });
+    const wrap = h('div', { class: 'ts-daychips', role: 'group', 'aria-label': tr('npcd.days') });
     ALL_DAYS.forEach((d) => {
-        const b = h('button', { type: 'button', class: ['ts-daychip', set.has(d) && 'is-on'], 'aria-pressed': set.has(d) ? 'true' : 'false' }, LOCALES.ru.wdShort[d]);
+        const b = h('button', { type: 'button', class: ['ts-daychip', set.has(d) && 'is-on'], 'aria-pressed': set.has(d) ? 'true' : 'false' }, locale().wdShort[d]);
         b.addEventListener('click', () => {
             if (set.has(d)) set.delete(d); else set.add(d);
             b.classList.toggle('is-on', set.has(d));
@@ -279,35 +280,35 @@ export async function npcDialog(npc) {
     const draft = normalizeNpc(npc ?? { name: '', shifts: [{ from: 1080, to: 120, days: [...ALL_DAYS] }] });
     if (!npc) draft.name = '';
 
-    const name = h('input', { type: 'text', class: 'ts-input', value: draft.name, placeholder: 'Олег', 'data-autofocus': true, maxlength: 80 });
-    const role = h('input', { type: 'text', class: 'ts-input', value: draft.role, placeholder: 'трактирщик', maxlength: 80 });
-    const place = h('input', { type: 'text', class: 'ts-input', value: draft.place, placeholder: 'Таверна «Сизый кит»', maxlength: 120 });
-    const elsewhere = h('input', { type: 'text', class: 'ts-input', value: draft.elsewhere, placeholder: 'дома, отсыпается', maxlength: 120 });
-    const notes = h('textarea', { class: 'ts-input', rows: 2, placeholder: 'Характер, привычки — коротко, это увидит ИИ', maxlength: 400 }, draft.notes);
+    const name = h('input', { type: 'text', class: 'ts-input', value: draft.name, placeholder: tr('example.name'), 'data-autofocus': true, maxlength: 80 });
+    const role = h('input', { type: 'text', class: 'ts-input', value: draft.role, placeholder: tr('example.role'), maxlength: 80 });
+    const place = h('input', { type: 'text', class: 'ts-input', value: draft.place, placeholder: tr('example.place'), maxlength: 120 });
+    const elsewhere = h('input', { type: 'text', class: 'ts-input', value: draft.elsewhere, placeholder: tr('example.elsewhere'), maxlength: 120 });
+    const notes = h('textarea', { class: 'ts-input', rows: 2, placeholder: tr('npcd.notesPh'), maxlength: 400 }, draft.notes);
     let hidden = draft.hidden;
 
     const shiftsBox = h('div', { class: 'ts-shifts' });
     const renderShifts = () => {
         shiftsBox.replaceChildren(...draft.shifts.map((s, i) => {
-            const from = timeInput(s.from, { cls: 'ts-input', label: 'Начало смены', onCommit: (m) => { s.from = m; } });
-            const to = timeInput(s.to, { cls: 'ts-input', label: 'Конец смены', onCommit: (m) => { s.to = m; } });
-            const sp = h('input', { type: 'text', class: 'ts-input', value: s.place, placeholder: 'Место (если не основное)', maxlength: 120 });
+            const from = timeInput(s.from, { cls: 'ts-input', label: tr('npcd.shiftStart'), onCommit: (m) => { s.from = m; } });
+            const to = timeInput(s.to, { cls: 'ts-input', label: tr('npcd.shiftEnd'), onCommit: (m) => { s.to = m; } });
+            const sp = h('input', { type: 'text', class: 'ts-input', value: s.place, placeholder: tr('npcd.shiftPlace'), maxlength: 120 });
             sp.addEventListener('input', () => { s.place = sp.value; });
-            const remove = h('button', { type: 'button', class: 'ts-icon-btn ts-icon-btn-sm', 'aria-label': 'Удалить смену', title: 'Удалить смену', onClick: () => { draft.shifts.splice(i, 1); renderShifts(); } }, icon('trash', { size: 16 }));
+            const remove = h('button', { type: 'button', class: 'ts-icon-btn ts-icon-btn-sm', 'aria-label': tr('npcd.removeShift'), title: tr('npcd.removeShift'), onClick: () => { draft.shifts.splice(i, 1); renderShifts(); } }, icon('trash', { size: 16 }));
             return h('div', { class: 'ts-shift' },
-                h('div', { class: 'ts-shift-times' }, h('span', { class: 'ts-shift-label' }, 'с'), from, h('span', { class: 'ts-shift-label' }, 'до'), to, remove),
+                h('div', { class: 'ts-shift-times' }, h('span', { class: 'ts-shift-label' }, tr('npcd.from')), from, h('span', { class: 'ts-shift-label' }, tr('npcd.to')), to, remove),
                 dayChips(s.days, (days) => { s.days = days; }),
                 sp);
         }));
-        if (!draft.shifts.length) shiftsBox.append(h('div', { class: 'ts-hand ts-muted' }, 'Без смен — NPC считается «без расписания».'));
+        if (!draft.shifts.length) shiftsBox.append(h('div', { class: 'ts-hand ts-muted' }, tr('npcd.noShifts')));
     };
     renderShifts();
 
     const actions = [];
-    if (npc) actions.push({ label: 'Удалить', kind: 'danger', value: { delete: true } });
-    actions.push({ label: 'Отмена', kind: 'ghost', value: null, push: true });
+    if (npc) actions.push({ label: tr('btn.delete'), kind: 'danger', value: { delete: true } });
+    actions.push({ label: tr('btn.cancel'), kind: 'ghost', value: null, push: true });
     actions.push({
-        label: 'Сохранить',
+        label: tr('btn.save'),
         kind: 'primary',
         validate: () => { const ok = !!name.value.trim(); if (!ok) name.focus(); return ok; },
         value: () => normalizeNpc({
@@ -323,31 +324,31 @@ export async function npcDialog(npc) {
     });
 
     return openModal({
-        title: npc ? npc.name : 'Новый NPC',
-        kicker: 'РАСПИСАНИЕ NPC',
+        title: npc ? npc.name : tr('npcd.new'),
+        kicker: tr('k.npcSchedule'),
         size: 'lg',
         body: [
-            h('div', { class: 'ts-grid2' }, field('Имя', name), field('Кто это', role)),
-            field('Где бывает по расписанию', place),
-            field('Где в остальное время', elsewhere, 'Необязательно. Например: «дома», «в лесу на охоте».'),
-            field('Заметка для ИИ', notes),
+            h('div', { class: 'ts-grid2' }, field(tr('npcd.name'), name), field(tr('npcd.role'), role)),
+            field(tr('npcd.place'), place),
+            field(tr('npcd.elsewhere'), elsewhere, tr('npcd.elsewhereHint')),
+            field(tr('npcd.notes'), notes),
             h('div', { class: 'ts-field' },
-                h('span', { class: 'ts-field-label' }, 'Смены'),
+                h('span', { class: 'ts-field-label' }, tr('npcd.shifts')),
                 shiftsBox,
-                h('button', { type: 'button', class: 'ts-btn ts-btn-outline ts-btn-sm', onClick: () => { draft.shifts.push({ from: 540, to: 1080, days: [...ALL_DAYS], place: '' }); renderShifts(); } }, icon('plus', { size: 14, width: 2.4 }), 'Смена'),
-                h('span', { class: 'ts-field-hint' }, 'Смена «18:00–02:00» в пн — с вечера понедельника до 2 ночи вторника. Одинаковые «с» и «до» — круглосуточно.')),
+                h('button', { type: 'button', class: 'ts-btn ts-btn-outline ts-btn-sm', onClick: () => { draft.shifts.push({ from: 540, to: 1080, days: [...ALL_DAYS], place: '' }); renderShifts(); } }, icon('plus', { size: 14, width: 2.4 }), tr('npcd.addShift')),
+                h('span', { class: 'ts-field-hint' }, tr('npcd.shiftHint'))),
             h('div', { class: 'ts-row ts-row-tight' },
                 h('div', { class: 'ts-row-text' },
-                    h('span', { class: 'ts-row-title' }, 'Скрыть от ИИ'),
-                    h('span', { class: 'ts-row-hint' }, 'NPC останется в блокноте, но не попадёт в промпт')),
-                switchButton({ on: hidden, label: 'Скрыть от ИИ', onToggle: (v) => { hidden = v; } })),
+                    h('span', { class: 'ts-row-title' }, tr('npcd.hide')),
+                    h('span', { class: 'ts-row-hint' }, tr('npcd.hideHint'))),
+                switchButton({ on: hidden, label: tr('npcd.hide'), onToggle: (v) => { hidden = v; } })),
         ],
         actions,
     });
 }
 
 /** Простое подтверждение. */
-export function confirmDialog({ title, text, ok = 'Да', cancel = 'Отмена', danger = false }) {
+export function confirmDialog({ title, text, ok = tr('btn.yes'), cancel = tr('btn.cancel'), danger = false }) {
     return openModal({
         title,
         body: h('p', { class: 'ts-p' }, text),

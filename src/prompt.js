@@ -4,6 +4,7 @@
 import { dayOf, fmtDate, fmtTime, fmtWeekday, fmtStamp, phaseName, fmtHM, minutesOf } from './calendar.js';
 import { npcStatus, fmtNextStart } from './schedule.js';
 import { ctx, KEY, settings, chatState, eventsOn, now, hasChat } from './store.js';
+import { uiLang } from './i18n.js';
 
 export const DEFAULT_TEMPLATE = {
     ru: `[Время мира: {{worldWeekday}}, {{worldDate}}, {{worldTime}} — {{worldPhase}}.
@@ -22,19 +23,17 @@ export const DEFAULT_TAG_RULE = {
 };
 
 export const VARIABLES = [
-    ['{{worldWeekday}}', 'день недели'],
-    ['{{worldDate}}', 'дата'],
-    ['{{worldTime}}', 'время ЧЧ:ММ'],
-    ['{{worldPhase}}', 'часть суток'],
-    ['{{worldStamp}}', 'ДД.ММ.ГГГГ ЧЧ:ММ'],
-    ['{{worldNpcs}}', 'где сейчас NPC'],
-    ['{{worldPresent}}', 'кто на месте'],
-    ['{{worldAbsent}}', 'кого нет'],
-    ['{{worldEvents}}', 'события сегодня/завтра'],
-    ['{{worldNotes}}', 'заметки (если включено)'],
+    '{{worldWeekday}}', '{{worldDate}}', '{{worldTime}}', '{{worldPhase}}', '{{worldStamp}}',
+    '{{worldNpcs}}', '{{worldPresent}}', '{{worldAbsent}}', '{{worldEvents}}', '{{worldNotes}}',
 ];
 
-const lang = () => (settings().promptLang === 'en' ? 'en' : 'ru');
+/** Язык текста для модели: настройка или язык интерфейса. */
+export function promptLang() {
+    const p = settings().promptLang;
+    if (p === 'ru' || p === 'en') return p;
+    return uiLang();
+}
+const lang = promptLang;
 
 function npcLine(n, t, L) {
     const st = npcStatus(n, t);
@@ -55,7 +54,7 @@ function npcLine(n, t, L) {
         case 'present': return `- ${head} — на месте: ${st.place || 'на своём посту'}${st.until !== null ? `, до ${fmtHM(minutesOf(st.until))}` : ''}.`;
         case 'away': case 'off': {
             const where = st.place ? ` (сейчас: ${st.place})` : '';
-            const next = st.next ? `; будет: ${st.next.shift.place || n.place || 'на своём месте'} ${fmtNextStart(st.next, t)}` : '';
+            const next = st.next ? `; будет: ${st.next.shift.place || n.place || 'на своём месте'} ${fmtNextStart(st.next, t, 'ru')}` : '';
             return `- ${head} — ${st.kind === 'off' ? 'выходной' : 'нет на месте'}${where}${next}.`;
         }
         default: return `- ${head} — без расписания${n.place ? `, обычно: ${n.place}` : ''}.`;
@@ -142,7 +141,7 @@ export function analysisPrompt(before, fragment) {
     }
     return {
         system: 'Ты отслеживаешь внутриигровое время в ролевой истории. Отвечай одной строкой в заданном формате, без пояснений.',
-        prompt: `Время мира до фрагмента: ${fmtWeekday(before)}, ${fmtStamp(before)}.\n\nФрагмент истории:\n"""\n${fragment}\n"""\n\nКакое время в мире после событий этого фрагмента? Учитывай явные указания (утро, через час, на следующий день) и длительность действий. Если прошло совсем немного, прибавь несколько минут. Ответь строго в формате [time: ДД.ММ.ГГГГ ЧЧ:ММ].`,
+        prompt: `Время мира до фрагмента: ${fmtWeekday(before, 'ru')}, ${fmtStamp(before)}.\n\nФрагмент истории:\n"""\n${fragment}\n"""\n\nКакое время в мире после событий этого фрагмента? Учитывай явные указания (утро, через час, на следующий день) и длительность действий. Если прошло совсем немного, прибавь несколько минут. Ответь строго в формате [time: ДД.ММ.ГГГГ ЧЧ:ММ].`,
     };
 }
 

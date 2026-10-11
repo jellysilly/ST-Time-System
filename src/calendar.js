@@ -2,6 +2,8 @@
 // Время мира хранится одним числом — минутами от 01.01.1970 (пролептический григорианский
 // календарь), поэтому любые сдвиги — это простое сложение, а годы вроде 1247 работают без Date.
 
+import { uiLang } from './i18n.js';
+
 export const DAY = 1440;
 export const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
@@ -68,6 +70,8 @@ export const LOCALES = {
 };
 
 const L = (lang) => LOCALES[lang] ?? LOCALES.ru;
+/** Названия месяцев и дней недели на языке интерфейса (или заданном). */
+export const locale = (lang = uiLang()) => L(lang);
 const pad2 = (n) => String(n).padStart(2, '0');
 export const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
@@ -89,28 +93,31 @@ export function parseHM(str) {
 export const fmtTime = (t) => fmtHM(minutesOf(t));
 
 /** 14 октября 1247 г. / October 14, 1247 */
-export function fmtDate(t, lang = 'ru') {
+export function fmtDate(t, lang = uiLang()) {
     const { y, m, d } = split(t);
     if (lang === 'en') return `${L(lang).months[m - 1]} ${d}, ${y}`;
     return `${d} ${L(lang).monthsGen[m - 1]} ${y} г.`;
 }
 
 /** 14 октября / October 14 */
-export function fmtDayMonth(t, lang = 'ru') {
+export function fmtDayMonth(t, lang = uiLang()) {
     const { m, d } = split(t);
     if (lang === 'en') return `${L(lang).months[m - 1]} ${d}`;
     return `${d} ${L(lang).monthsGen[m - 1]}`;
 }
 
 /** ср, 14 окт. / Wed, Oct 14 */
-export function fmtDateShort(t, lang = 'ru') {
+export function fmtDateShort(t, lang = uiLang()) {
     const { m, d, wd } = split(t);
     if (lang === 'en') return `${L(lang).wdShort[wd]}, ${L(lang).monthsShort[m - 1]} ${d}`;
     return `${L(lang).wdShort[wd]}, ${d} ${L(lang).monthsShort[m - 1]}`;
 }
 
-export const fmtWeekday = (t, lang = 'ru') => L(lang).wdLong[split(t).wd];
-export const fmtWeekdayShort = (t, lang = 'ru') => L(lang).wdShort[split(t).wd];
+/** ср, 14 окт. 1247 / Wed, Oct 14, 1247 */
+export const fmtDateShortYear = (t, lang = uiLang()) => `${fmtDateShort(t, lang)}${lang === 'en' ? ',' : ''} ${split(t).y}`;
+
+export const fmtWeekday = (t, lang = uiLang()) => L(lang).wdLong[split(t).wd];
+export const fmtWeekdayShort = (t, lang = uiLang()) => L(lang).wdShort[split(t).wd];
 
 /** 14.10.1247 */
 export function fmtNumDate(t) {
@@ -122,7 +129,7 @@ export function fmtNumDate(t) {
 export const fmtStamp = (t) => `${fmtNumDate(t)} ${fmtTime(t)}`;
 
 /** Среда, 14 октября 1247 г., 21:40 */
-export const fmtFull = (t, lang = 'ru') => `${cap(fmtWeekday(t, lang))}, ${fmtDate(t, lang)}, ${fmtTime(t)}`;
+export const fmtFull = (t, lang = uiLang()) => `${cap(fmtWeekday(t, lang))}, ${fmtDate(t, lang)}, ${fmtTime(t)}`;
 
 export function phaseKey(minutes) {
     if (minutes < 300) return 'night';
@@ -132,11 +139,12 @@ export function phaseKey(minutes) {
     return 'night';
 }
 
-export const phaseName = (t, lang = 'ru') => L(lang).phases[phaseKey(minutesOf(t))];
+export const phaseName = (t, lang = uiLang()) => L(lang).phases[phaseKey(minutesOf(t))];
 
-/** +10 ч 50 мин, −1 ч, +2 дн. 3 ч, без изменений */
-export function fmtDelta(delta) {
-    if (!delta) return 'без изменений';
+/** +10 ч 50 мин, −1 ч, +2 дн. 3 ч, без изменений / +10 h 50 min, no change */
+export function fmtDelta(delta, lang = uiLang()) {
+    const U = lang === 'en' ? { same: 'no change', d: 'd', h: 'h', m: 'min' } : { same: 'без изменений', d: 'дн.', h: 'ч', m: 'мин' };
+    if (!delta) return U.same;
     const sign = delta < 0 ? '−' : '+';
     let rest = Math.abs(delta);
     const days = Math.floor(rest / DAY);
@@ -144,10 +152,10 @@ export function fmtDelta(delta) {
     const hours = Math.floor(rest / 60);
     const mins = rest - hours * 60;
     const parts = [];
-    if (days) parts.push(`${days} дн.`);
-    if (hours) parts.push(`${hours} ч`);
-    if (mins && days < 2) parts.push(`${mins} мин`);
-    return sign + (parts.join(' ') || '0 мин');
+    if (days) parts.push(`${days} ${U.d}`);
+    if (hours) parts.push(`${hours} ${U.h}`);
+    if (mins && days < 2) parts.push(`${mins} ${U.m}`);
+    return sign + (parts.join(' ') || `0 ${U.m}`);
 }
 
 // ───────────────────────── разбор ─────────────────────────

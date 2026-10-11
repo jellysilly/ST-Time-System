@@ -4,11 +4,8 @@
 import { h } from './dom.js';
 import { ctx, settings, getSnap, nowAt } from '../store.js';
 import { tagRegex, fmtTime, fmtDateShort, fmtFull, dayOf } from '../calendar.js';
+import { t as tr } from '../i18n.js';
 
-const SRC = {
-    tag: 'из ответа модели', analysis: 'по анализу ответа', auto: 'авто-ход', manual: 'исправлено вручную',
-    user: 'из вашего сообщения', rejected: 'изменение отклонено',
-};
 
 let stampHandler = null;
 /** fn(messageIndex) — вызывается по нажатию на метку времени. */
@@ -34,7 +31,7 @@ function wrapTags(root) {
         let last = 0;
         for (const m of text.matchAll(tagRegex())) {
             if (m.index > last) frag.append(text.slice(last, m.index));
-            frag.append(h('span', { class: 'ts-tag', title: 'Отметка времени для Time System' }, m[0]));
+            frag.append(h('span', { class: 'ts-tag', title: tr('tag.title') }, m[0]));
             last = m.index + m[0].length;
         }
         if (last < text.length) frag.append(text.slice(last));
@@ -80,10 +77,10 @@ function updateStamp(mesEl, id, msg) {
 
     const prevT = nowAt(id - 1);
     const newDay = prevT === null || dayOf(prevT) !== dayOf(t);
-    const text = pending ? 'подтвердить время?' : newDay ? `${fmtDateShort(t)} · ${fmtTime(t)}` : fmtTime(t);
+    const text = pending ? tr('stamp.pending') : newDay ? `${fmtDateShort(t)} · ${fmtTime(t)}` : fmtTime(t);
     const title = pending
-        ? `Модель предлагает: ${fmtFull(t)}. Нажмите, чтобы решить.`
-        : `Время мира после сообщения: ${fmtFull(t)} — ${SRC[snap.src] ?? snap.src}${snap.ed ? ', поправлено' : ''}. Нажмите, чтобы исправить.`;
+        ? tr('stamp.pendingTitle', { when: fmtFull(t) })
+        : tr('stamp.title', { when: fmtFull(t), src: tr(`srcLong.${snap.src}`), edited: snap.ed ? tr('stamp.edited') : '' });
 
     if (!el) {
         el = h('span', { class: 'ts-stamp', role: 'button', tabindex: '0' });

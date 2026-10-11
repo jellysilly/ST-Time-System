@@ -1,6 +1,7 @@
 // Маленькие помощники для построения DOM без фреймворков.
 
 import { fmtHM, parseHM } from '../calendar.js';
+import { t } from '../i18n.js';
 
 /**
  * h('button', { class: 'x', onClick: fn, 'aria-label': '…' }, 'текст', childNode)
@@ -102,9 +103,9 @@ export function switchButton({ on, label, onToggle, cls = '' }) {
  * Поле «ЧЧ:ММ» в 24-часовом формате на любой локали. На телефоне открывает цифровую
  * клавиатуру, двоеточие ставится само: «730» → «7:30», «0730» → «07:30».
  */
-export function timeInput(minutes, { cls = 'ts-input ts-in-time', label = 'Время', onCommit } = {}) {
+export function timeInput(minutes, { cls = 'ts-input ts-in-time', label = t('dt.time'), onCommit } = {}) {
     let last = fmtHM(minutes);
-    const el = h('input', { type: 'text', inputmode: 'numeric', autocomplete: 'off', maxlength: 5, placeholder: 'ЧЧ:ММ', value: last, class: cls, 'aria-label': label, spellcheck: 'false' });
+    const el = h('input', { type: 'text', inputmode: 'numeric', autocomplete: 'off', maxlength: 5, placeholder: t('dt.placeholder'), value: last, class: cls, 'aria-label': label, spellcheck: 'false' });
     el.addEventListener('input', () => {
         const digits = el.value.replace(/\D/g, '').slice(0, 4);
         el.value = digits.length > 2 ? `${digits.slice(0, -2)}:${digits.slice(-2)}` : digits;

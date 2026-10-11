@@ -14,6 +14,7 @@ import { findTag, parseTimeValue, dayOf, tagRegex } from './calendar.js';
 import { analysisPrompt } from './prompt.js';
 import { confirmTimeDialog } from './ui/dialogs.js';
 import { toast } from './ui/dom.js';
+import { t as tr } from './i18n.js';
 
 const FRESH_TYPES = new Set(['normal', 'swipe', 'regenerate', 'first_message', 'quiet', undefined, null, '']);
 
@@ -154,7 +155,7 @@ async function runQueue() {
             const res = await confirmTimeDialog({
                 before,
                 proposed: snap.p,
-                source: snap.tag ? `[time: ${snap.tag}]` : 'по анализу ответа',
+                source: snap.tag ? `[time: ${snap.tag}]` : tr('confirm.byAnalysis'),
                 who: msg.name,
                 bind: (api) => { dialog.dismiss = api.dismiss; },
             });
@@ -215,7 +216,7 @@ const cleanText = (text) => String(text ?? '')
 
 async function rawGenerate(prompt, systemPrompt) {
     const fn = ctx().generateRaw;
-    if (typeof fn !== 'function') throw new Error('generateRaw недоступен в этой версии SillyTavern');
+    if (typeof fn !== 'function') throw new Error(tr('err.noGenerateRaw'));
     // Новые версии принимают объект, старые — позиционные аргументы.
     if (fn.length === 0) return await fn({ prompt, systemPrompt });
     return await fn(prompt, null, false, false, systemPrompt);
@@ -236,7 +237,7 @@ async function analyze(index, before, tok) {
         result = String(await rawGenerate(prompt, system) ?? '');
     } catch (e) {
         console.warn('[Time System] анализ времени не удался', e);
-        toast('warning', 'Не удалось определить время по ответу — оставлен авто-ход.');
+        toast('warning', tr('toast.analysisFail'));
         return;
     }
 

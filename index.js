@@ -6,8 +6,9 @@ import { processMessage, processEdit, resetForChat, reopenPending } from './src/
 import { notebook } from './src/ui/notebook.js';
 import { editMessageTime } from './src/ui/dialogs.js';
 import { decorateAll, decorateById, setStampHandler, syncBodyClasses } from './src/ui/chat.js';
-import { mountWidget, updateWidget, mountWandItem, mountPanel, updatePanel } from './src/ui/widget.js';
+import { mountWidget, updateWidget, mountWandItem, mountPanel, updatePanel, relocalizeChrome } from './src/ui/widget.js';
 import { registerCommands, registerMacros } from './src/commands.js';
+import { t, uiLang } from './src/i18n.js';
 
 const openNotebook = () => notebook.open();
 
@@ -55,9 +56,17 @@ function init() {
     const { eventSource } = ctx();
     const ev = ctx().eventTypes ?? ctx().event_types;
 
+    let lastLang = uiLang();
     onChange(() => {
         try { applyPrompt(); } catch (e) { console.error('[Time System]', e); }
         syncBodyClasses();
+        // Сменился язык интерфейса — пересобираем панель и открытый блокнот.
+        const lang = uiLang();
+        if (lang !== lastLang) {
+            lastLang = lang;
+            relocalizeChrome();
+            notebook.relocalize();
+        }
         scheduleDom();
     });
 
@@ -89,14 +98,14 @@ function init() {
 
     syncBodyClasses();
     onChatChanged();
-    console.log('[Time System] загружено');
+    console.log('[Time System] loaded');
 }
 
 jQuery(() => {
     try {
         init();
     } catch (e) {
-        console.error('[Time System] ошибка запуска', e);
-        globalThis.toastr?.error?.('Не удалось запустить Time System — подробности в консоли.');
+        console.error('[Time System] failed to start', e);
+        globalThis.toastr?.error?.(t('app.startFailed'));
     }
 });

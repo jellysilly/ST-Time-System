@@ -5,63 +5,57 @@
 import { h, switchButton, timeInput } from './dom.js';
 import { settings, setSetting, onChange, resetSettings } from '../store.js';
 import { fmtHM, parseHM } from '../calendar.js';
-import { DEFAULT_TEMPLATE, DEFAULT_TAG_RULE, VARIABLES } from '../prompt.js';
+import { DEFAULT_TEMPLATE, DEFAULT_TAG_RULE, VARIABLES, promptLang } from '../prompt.js';
+import { t } from '../i18n.js';
 import { confirmDialog } from './dialogs.js';
 
-const lang = () => (settings().promptLang === 'en' ? 'en' : 'ru');
-
+// В схеме — ключи переводов (src/i18n.js), а не готовый текст.
 export const SCHEMA = [
     {
-        group: 'main', key: 'detection', type: 'select', label: 'Как замечать смену времени',
-        options: [
-            ['tag', 'Модель ставит тег [time: …] (рекомендуется)'],
-            ['analysis', 'Отдельный запрос-анализ после ответа'],
-            ['off', 'Не отслеживать: авто-ход и вручную'],
-        ],
-        hint: (s) => ({
-            tag: 'Модель в конце ответа пишет [time: 15.10.1247 08:30]. Тег прячется из чата, время записывается в календарь.',
-            analysis: 'После каждого ответа уходит короткий отдельный запрос к модели. Точнее для слабых моделей, но тратит токены.',
-            off: 'Время двигается только авто-ходом и вашими кнопками.',
-        })[s.detection],
+        group: 'main', key: 'uiLang', type: 'select', label: 'set.uiLang',
+        options: [['auto', 'opt.lang.auto'], ['ru', 'opt.lang.ru'], ['en', 'opt.lang.en']],
     },
     {
-        group: 'main', key: 'confirm', type: 'select', label: 'Спрашивать перед записью',
-        options: [
-            ['off', 'Нет — записывать сразу'],
-            ['day', 'Только при смене дня'],
-            ['big', 'При смене дня или скачке от 3 часов'],
-            ['always', 'Всегда'],
-        ],
-        hint: 'Откроется окно: принять, поправить дату и время или отклонить. Время можно исправить и позже — нажмите на метку у сообщения.',
+        group: 'main', key: 'detection', type: 'select', label: 'set.detection',
+        options: [['tag', 'opt.detection.tag'], ['analysis', 'opt.detection.analysis'], ['off', 'opt.detection.off']],
+        hint: (s) => `hint.detection.${s.detection}`,
     },
-    { group: 'main', key: 'autoAdvance', type: 'toggle', label: 'Время идёт само', hint: 'Если в ответе нет отметки — прибавлять минуты за каждый ответ персонажа.' },
-    { group: 'main', key: 'autoMinutes', type: 'number', label: 'Минут за ответ', min: 0, max: 720, showIf: (s) => s.autoAdvance },
-    { group: 'main', key: 'wakeTime', type: 'time', label: 'Кнопка «Сон» — до', hint: 'Во сколько мир просыпается.' },
-    { group: 'main', key: 'hideTags', type: 'toggle', label: 'Прятать теги [time: …] в чате' },
-    { group: 'main', key: 'showStamps', type: 'toggle', label: 'Метка времени у сообщений', hint: 'Нажатие на метку — исправить время этого сообщения.' },
-    { group: 'main', key: 'showWidget', type: 'toggle', label: 'Плавающие часы', hint: 'Маленькие часы поверх чата. Перетаскиваются, по нажатию открывают блокнот.' },
+    {
+        group: 'main', key: 'confirm', type: 'select', label: 'set.confirm',
+        options: [['off', 'opt.confirm.off'], ['day', 'opt.confirm.day'], ['big', 'opt.confirm.big'], ['always', 'opt.confirm.always']],
+        hint: 'hint.confirm',
+    },
+    { group: 'main', key: 'autoAdvance', type: 'toggle', label: 'auto.title', hint: 'hint.autoAdvance' },
+    { group: 'main', key: 'autoMinutes', type: 'number', label: 'set.autoMinutes', min: 0, max: 720, showIf: (s) => s.autoAdvance },
+    { group: 'main', key: 'wakeTime', type: 'time', label: 'set.wakeTime', hint: 'hint.wakeTime' },
+    { group: 'main', key: 'hideTags', type: 'toggle', label: 'set.hideTags' },
+    { group: 'main', key: 'showStamps', type: 'toggle', label: 'set.showStamps', hint: 'hint.showStamps' },
+    { group: 'main', key: 'showWidget', type: 'toggle', label: 'set.showWidget', hint: 'hint.showWidget' },
 
     {
-        group: 'prompt', key: 'injectPosition', type: 'select', label: 'Куда вставлять',
-        options: [['chat', 'В чат, на глубину N'], ['after', 'После описания и сценария'], ['before', 'Перед основным промптом']],
+        group: 'prompt', key: 'injectPosition', type: 'select', label: 'set.injectPosition',
+        options: [['chat', 'opt.pos.chat'], ['after', 'opt.pos.after'], ['before', 'opt.pos.before']],
     },
-    { group: 'prompt', key: 'injectDepth', type: 'number', label: 'Глубина', min: 0, max: 100, showIf: (s) => s.injectPosition === 'chat', hint: '0 — после последнего сообщения, 1 — перед ним и т. д.' },
+    { group: 'prompt', key: 'injectDepth', type: 'number', label: 'set.injectDepth', min: 0, max: 100, showIf: (s) => s.injectPosition === 'chat', hint: 'hint.injectDepth' },
     {
-        group: 'prompt', key: 'injectRole', type: 'select', label: 'Роль',
-        options: [['system', 'Система'], ['user', 'Пользователь'], ['assistant', 'Ассистент']], showIf: (s) => s.injectPosition === 'chat',
-    },
-    { group: 'prompt', key: 'promptLang', type: 'select', label: 'Язык инъекции', options: [['ru', 'Русский'], ['en', 'English']] },
-    { group: 'prompt', key: 'includeNpcs', type: 'toggle', label: 'Передавать расписания NPC' },
-    { group: 'prompt', key: 'includeEvents', type: 'toggle', label: 'Передавать события дня' },
-    {
-        group: 'prompt', key: 'template', type: 'textarea', label: 'Шаблон инъекции', rows: 6,
-        defaultText: () => DEFAULT_TEMPLATE[lang()],
-        hint: 'Пусто — стандартный шаблон. Переменные: ' + VARIABLES.map(([k]) => k).join(' ') + '. Макросы ST ({{user}}, {{char}}) тоже работают.',
+        group: 'prompt', key: 'injectRole', type: 'select', label: 'set.injectRole',
+        options: [['system', 'opt.role.system'], ['user', 'opt.role.user'], ['assistant', 'opt.role.assistant']], showIf: (s) => s.injectPosition === 'chat',
     },
     {
-        group: 'prompt', key: 'tagRule', type: 'textarea', label: 'Инструкция про тег времени', rows: 5,
-        defaultText: () => DEFAULT_TAG_RULE[lang()], showIf: (s) => s.detection === 'tag',
-        hint: 'Добавляется после шаблона в режиме «тег». Пусто — стандартная.',
+        group: 'prompt', key: 'promptLang', type: 'select', label: 'set.promptLang',
+        options: [['auto', 'opt.plang.auto'], ['ru', 'opt.lang.ru'], ['en', 'opt.lang.en']],
+    },
+    { group: 'prompt', key: 'includeNpcs', type: 'toggle', label: 'set.includeNpcs' },
+    { group: 'prompt', key: 'includeEvents', type: 'toggle', label: 'set.includeEvents' },
+    {
+        group: 'prompt', key: 'template', type: 'textarea', label: 'set.template', rows: 6,
+        defaultText: () => DEFAULT_TEMPLATE[promptLang()],
+        hint: 'hint.template', hintVars: () => ({ vars: VARIABLES.join(' ') }),
+    },
+    {
+        group: 'prompt', key: 'tagRule', type: 'textarea', label: 'set.tagRule', rows: 5,
+        defaultText: () => DEFAULT_TAG_RULE[promptLang()], showIf: (s) => s.detection === 'tag',
+        hint: 'hint.tagRule',
     },
 ];
 
@@ -104,11 +98,11 @@ function buildControl(def, variant) {
                 el.addEventListener('change', () => commit(el));
                 return el;
             }
-            return switchButton({ on: !!s[def.key], label: def.label, onToggle: (v) => setSetting(def.key, v) });
+            return switchButton({ on: !!s[def.key], label: t(def.label), onToggle: (v) => setSetting(def.key, v) });
         }
         case 'select': {
             const el = h('select', { id, class: variant === 'st' ? 'text_pole' : 'ts-input' },
-                def.options.map(([v, l]) => h('option', { value: v, selected: s[def.key] === v }, l)));
+                def.options.map(([v, l]) => h('option', { value: v, selected: s[def.key] === v }, t(l))));
             el.addEventListener('change', () => commit(el));
             return el;
         }
@@ -118,7 +112,7 @@ function buildControl(def, variant) {
             return el;
         }
         case 'time': {
-            const el = timeInput(s[def.key], { cls: variant === 'st' ? 'text_pole' : 'ts-input ts-input-num', label: def.label, onCommit: (m) => setSetting(def.key, m) });
+            const el = timeInput(s[def.key], { cls: variant === 'st' ? 'text_pole' : 'ts-input ts-input-num', label: t(def.label), onCommit: (m) => setSetting(def.key, m) });
             el.id = id;
             return el;
         }
@@ -133,8 +127,8 @@ function buildControl(def, variant) {
 
 function textareaTools(def, control, variant) {
     const btnCls = variant === 'st' ? 'menu_button menu_button_icon' : 'ts-btn ts-btn-outline ts-btn-sm';
-    const load = h('button', { type: 'button', class: btnCls, title: 'Подставить стандартный текст, чтобы отредактировать его' }, 'Взять стандартный');
-    const clear = h('button', { type: 'button', class: btnCls, title: 'Вернуть стандартный (очистить поле)' }, 'Сбросить');
+    const load = h('button', { type: 'button', class: btnCls, title: t('set.loadDefaultTitle') }, t('set.loadDefault'));
+    const clear = h('button', { type: 'button', class: btnCls, title: t('set.clearTitle') }, t('set.clear'));
     load.addEventListener('click', () => { control.value = def.defaultText(); setSetting(def.key, control.value); control.focus(); });
     clear.addEventListener('click', () => { control.value = ''; setSetting(def.key, ''); });
     return h('div', { class: variant === 'st' ? 'flex-container' : 'ts-inline-btns' }, load, clear);
@@ -144,25 +138,25 @@ function buildField(def, variant) {
     const control = buildControl(def, variant);
     const hintEl = def.hint ? h(variant === 'st' ? 'div' : 'span', { class: variant === 'st' ? 'ts-st-hint' : 'ts-row-hint' }) : null;
     const updateHint = () => {
-        if (hintEl) hintEl.textContent = typeof def.hint === 'function' ? def.hint(settings()) : def.hint;
+        if (hintEl) hintEl.textContent = t(typeof def.hint === 'function' ? def.hint(settings()) : def.hint, def.hintVars?.());
     };
     updateHint();
 
     let el;
     if (variant === 'st') {
         if (def.type === 'toggle') {
-            el = h('div', { class: 'ts-st-field' }, h('label', { class: 'checkbox_label', for: control.id }, control, h('span', null, def.label)), hintEl);
+            el = h('div', { class: 'ts-st-field' }, h('label', { class: 'checkbox_label', for: control.id }, control, h('span', null, t(def.label))), hintEl);
         } else {
-            el = h('div', { class: 'ts-st-field' }, h('label', { for: control.id }, def.label), control, def.type === 'textarea' ? textareaTools(def, control, variant) : null, hintEl);
+            el = h('div', { class: 'ts-st-field' }, h('label', { for: control.id }, t(def.label)), control, def.type === 'textarea' ? textareaTools(def, control, variant) : null, hintEl);
         }
     } else if (def.type === 'select' || def.type === 'textarea') {
         el = h('div', { class: 'ts-row ts-row-col' },
-            h('div', { class: 'ts-row-text' }, h('label', { class: 'ts-row-title', for: control.id }, def.label), hintEl),
+            h('div', { class: 'ts-row-text' }, h('label', { class: 'ts-row-title', for: control.id }, t(def.label)), hintEl),
             control,
             def.type === 'textarea' ? textareaTools(def, control, variant) : null);
     } else {
         el = h('div', { class: 'ts-row' },
-            h('div', { class: 'ts-row-text' }, def.type === 'toggle' ? h('span', { class: 'ts-row-title' }, def.label) : h('label', { class: 'ts-row-title', for: control.id }, def.label), hintEl),
+            h('div', { class: 'ts-row-text' }, def.type === 'toggle' ? h('span', { class: 'ts-row-title' }, t(def.label)) : h('label', { class: 'ts-row-title', for: control.id }, t(def.label)), hintEl),
             control);
     }
     return { def, el, control, updateHint };
@@ -195,6 +189,6 @@ export function settingsForm(variant, groups = ['main', 'prompt']) {
 }
 
 export async function askResetSettings() {
-    const ok = await confirmDialog({ title: 'Сбросить настройки?', text: 'Все настройки Time System вернутся к стандартным. Данные чатов (время, NPC, события) не пострадают.', ok: 'Сбросить', danger: true });
+    const ok = await confirmDialog({ title: t('reset.title'), text: t('reset.text'), ok: t('reset.ok'), danger: true });
     if (ok) resetSettings();
 }

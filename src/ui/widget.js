@@ -2,7 +2,8 @@
 
 import { h, icon } from './dom.js';
 import { settings, hasChat, now } from '../store.js';
-import { fmtTime, fmtDateShort, phaseName, split } from '../calendar.js';
+import { fmtTime, fmtDateShort, fmtDateShortYear, phaseName } from '../calendar.js';
+import { t as tr } from '../i18n.js';
 import { settingsForm, askResetSettings } from './settings.js';
 
 const POS_KEY = 'time_system_widget_pos';
@@ -39,7 +40,7 @@ function applyPos(p) {
 export function mountWidget(onOpen) {
     openHandler = onOpen;
     if (widget) return;
-    widget = h('button', { type: 'button', class: 'ts-ui ts-widget', 'aria-label': 'Time System — открыть блокнот', title: 'Time System' },
+    widget = h('button', { type: 'button', class: 'ts-ui ts-widget', 'aria-label': tr('widget.aria'), title: 'Time System' },
         h('span', { class: 'ts-widget-icon' }, icon('clock', { size: 18, width: 1.9 })),
         h('span', { class: 'ts-widget-text' }, h('b', { class: 'ts-widget-time' }), h('span', { class: 'ts-widget-date' })));
     document.body.append(widget);
@@ -96,7 +97,8 @@ export function updateWidget() {
     if (t === null) { widget.hidden = true; return; }
     widget.querySelector('.ts-widget-time').textContent = fmtTime(t);
     widget.querySelector('.ts-widget-date').textContent = fmtDateShort(t);
-    widget.title = `Время мира: ${fmtDateShort(t)} ${split(t).y}, ${fmtTime(t)} — ${phaseName(t)}. Нажмите, чтобы открыть блокнот.`;
+    widget.title = tr('widget.title', { when: `${fmtDateShortYear(t)}, ${fmtTime(t)}`, phase: phaseName(t) });
+    widget.setAttribute('aria-label', tr('widget.aria'));
     const pos = readPos();
     if (pos) applyPos(pos);
 }
@@ -104,7 +106,7 @@ export function updateWidget() {
 export function mountWandItem(onOpen) {
     const menu = document.getElementById('extensionsMenu');
     if (!menu || document.getElementById('ts_wand_item')) return;
-    const item = h('div', { id: 'ts_wand_item', class: 'list-group-item flex-container flexGap5', title: 'Открыть блокнот Time System' },
+    const item = h('div', { id: 'ts_wand_item', class: 'list-group-item flex-container flexGap5', title: tr('wand.title') },
         h('div', { class: 'fa-regular fa-clock extensionsMenuExtensionButton' }),
         h('span', null, 'Time System'));
     item.addEventListener('click', () => onOpen());
@@ -112,36 +114,57 @@ export function mountWandItem(onOpen) {
 }
 
 let panelNow = null;
+let panelOpen = () => {};
 
-export function mountPanel(onOpen) {
+function buildPanel() {
     const host = document.getElementById('extensions_settings2') ?? document.getElementById('extensions_settings');
-    if (!host || document.getElementById('ts_settings_panel')) return;
+    if (!host) return;
+    const old = document.getElementById('ts_settings_panel');
+    const oldContent = old?.querySelector('.inline-drawer-content');
+    const wasOpen = !!oldContent && getComputedStyle(oldContent).display !== 'none';
+
     panelNow = h('div', { class: 'ts-st-now' });
+    const content = h('div', { class: 'inline-drawer-content' },
+        panelNow,
+        h('div', { class: 'menu_button menu_button_icon ts-st-open', role: 'button', tabindex: '0', onClick: () => panelOpen() },
+            h('i', { class: 'fa-solid fa-book-open' }), h('span', null, tr('panel.open'))),
+        settingsForm('st', ['main', 'prompt']),
+        h('div', { class: 'ts-st-footer' },
+            h('div', { class: 'menu_button', role: 'button', tabindex: '0', onClick: () => askResetSettings() }, tr('set.reset')),
+            h('small', null, tr('panel.footer'))));
+    const chevron = h('div', { class: ['inline-drawer-icon', 'fa-solid', wasOpen ? 'fa-circle-chevron-up up' : 'fa-circle-chevron-down down'] });
     const panel = h('div', { id: 'ts_settings_panel', class: 'ts-st-panel' },
         h('div', { class: 'inline-drawer' },
             h('div', { class: 'inline-drawer-toggle inline-drawer-header' },
                 h('b', null, h('i', { class: 'fa-regular fa-clock' }), ' Time System'),
-                h('div', { class: 'inline-drawer-icon fa-solid fa-circle-chevron-down down' })),
-            h('div', { class: 'inline-drawer-content' },
-                panelNow,
-                h('div', { class: 'menu_button menu_button_icon ts-st-open', role: 'button', tabindex: '0', onClick: () => onOpen() },
-                    h('i', { class: 'fa-solid fa-book-open' }), h('span', null, 'Открыть блокнот')),
-                settingsForm('st', ['main', 'prompt']),
-                h('div', { class: 'ts-st-footer' },
-                    h('div', { class: 'menu_button', role: 'button', tabindex: '0', onClick: () => askResetSettings() }, 'Сбросить настройки'),
-                    h('small', null, 'Блокнот: кнопка в меню ✨ (волшебная палочка), плавающие часы или /ts-open')))));
-    host.append(panel);
+                chevron),
+            content));
+    // Пересборка (смена языка) не должна сворачивать открытую панель.
+    if (wasOpen) content.style.display = 'block';
+    if (old) old.replaceWith(panel); else host.append(panel);
     updatePanel();
+}
+
+export function mountPanel(onOpen) {
+    panelOpen = onOpen;
+    if (!document.getElementById('ts_settings_panel')) buildPanel();
+}
+
+/** Смена языка интерфейса: пересобрать панель и подписи. */
+export function relocalizeChrome() {
+    buildPanel();
+    const wand = document.getElementById('ts_wand_item');
+    if (wand) wand.title = tr('wand.title');
+    updateWidget();
 }
 
 export function updatePanel() {
     if (!panelNow) return;
     const s = settings();
-    if (!hasChat()) { panelNow.textContent = 'Откройте чат, чтобы увидеть время мира.'; return; }
+    if (!hasChat()) { panelNow.textContent = tr('panel.noChat'); return; }
     const t = now();
     panelNow.textContent = s.enabled
-        ? `Сейчас в мире: ${fmtDateShort(t)} ${split(t).y}, ${fmtTime(t)} — ${phaseName(t)}`
-        : 'Расширение выключено — время не отслеживается и не передаётся ИИ.';
+        ? tr('panel.now', { when: `${fmtDateShortYear(t)}, ${fmtTime(t)}`, phase: phaseName(t) })
+        : tr('panel.disabled');
     panelNow.prepend(h('i', { class: 'fa-regular fa-clock' }), ' ');
 }
-
