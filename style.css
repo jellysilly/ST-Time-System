@@ -1,0 +1,632 @@
+/* ───────────────────────── Time System ─────────────────────────
+   Палитра и шрифты — из дизайна «Time & Calendar System».
+   Все стили расширения живут под .ts-ui, чтобы не задевать тему SillyTavern. */
+
+/* Шрифты (OFL, см. fonts/OFL.txt) */
+@font-face { font-family: 'TS Manrope'; font-style: normal; font-weight: 200 800; font-display: swap; src: url('fonts/manrope-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'TS Manrope'; font-style: normal; font-weight: 200 800; font-display: swap; src: url('fonts/manrope-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'TS Yeseva'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/yesevaone-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'TS Yeseva'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/yesevaone-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'TS Caveat'; font-style: normal; font-weight: 400 700; font-display: swap; src: url('fonts/caveat-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'TS Caveat'; font-style: normal; font-weight: 400 700; font-display: swap; src: url('fonts/caveat-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'TS Mono'; font-style: normal; font-weight: 100 800; font-display: swap; src: url('fonts/jetbrainsmono-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'TS Mono'; font-style: normal; font-weight: 100 800; font-display: swap; src: url('fonts/jetbrainsmono-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+.ts-ui {
+    --ts-ink: #3E3630;
+    --ts-ink-2: #6E6257;
+    --ts-paper: #FCF7DF;
+    --ts-cream: #F7F2E8;
+    --ts-blue: #C7D3DB;
+    --ts-taupe: #A79A8A;
+    --ts-sand: #F2EAD0;
+    --ts-binding: #EFE6C9;
+    --ts-sky: #DEEAF1;
+    --ts-track: #EDE3C6;
+    --ts-card: #FFFCEB;
+    --ts-off: #E6DCC6;
+    --ts-danger: #A4473A;
+    --ts-body: 'TS Manrope', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --ts-display: 'TS Yeseva', 'Yeseva One', Georgia, serif;
+    --ts-hand: 'TS Caveat', 'Caveat', 'Segoe Print', cursive;
+    --ts-mono: 'TS Mono', 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-family: var(--ts-body);
+    color: var(--ts-ink);
+    font-size: 14px;
+    line-height: 1.35;
+    -webkit-text-size-adjust: 100%;
+}
+
+.ts-ui, .ts-ui * { box-sizing: border-box; text-shadow: none; }
+.ts-ui [hidden], .ts-ui[hidden] { display: none !important; }
+:where(.ts-ui) :is(button, input, select, textarea) { font-family: inherit; font-size: inherit; color: inherit; margin: 0; }
+:where(.ts-ui) :is(h1, h2, h3, p) { margin: 0; font-weight: inherit; line-height: inherit; }
+.ts-ui button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ts-ui button:disabled { cursor: default; opacity: .5; }
+.ts-ui :is(button, [role="button"], a):focus-visible,
+.ts-ui :is(input, select, textarea):focus-visible { outline: 2px solid var(--ts-ink); outline-offset: 2px; }
+
+.ts-ui .dots,
+.ts-ui.dots {
+    background-color: var(--ts-paper);
+    background-image: radial-gradient(rgba(167, 154, 138, .38) 1px, transparent 1.3px);
+    background-size: 22px 22px;
+}
+
+.ts-kicker { font-size: 12px; font-weight: 800; letter-spacing: .14em; color: var(--ts-ink-2); text-transform: uppercase; }
+.ts-hand { font-family: var(--ts-hand); font-weight: 700; }
+.ts-hand-md { font-size: 22px; line-height: 1.15; font-weight: 500; }
+.ts-hand-lg { font-size: 26px; line-height: 1.2; font-weight: 500; }
+.ts-muted { color: var(--ts-ink-2); }
+.ts-strong { font-weight: 700; }
+.ts-p { font-size: 15px; line-height: 1.45; }
+.ts-h2 { font-family: var(--ts-display); font-weight: 400; font-size: 34px; line-height: 1.1; }
+.ts-hint-block { font-size: 12.5px; font-weight: 500; line-height: 1.45; color: var(--ts-ink-2); }
+.ts-selfstart { align-self: flex-start; }
+
+/* ───────────────────────── кнопки и переключатели ───────────────────────── */
+
+.ts-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1.5px solid transparent;
+    background: transparent; font-size: 14px; font-weight: 700; line-height: 1.1; white-space: nowrap;
+    transition: background-color .15s, color .15s, border-color .15s;
+}
+.ts-btn-sm { min-height: 36px; padding: 0 14px; border-radius: 10px; font-size: 13px; }
+.ts-btn-dark { background: var(--ts-ink); border-color: var(--ts-ink); color: var(--ts-paper); }
+.ts-btn-dark:hover { background: #554a42; border-color: #554a42; }
+.ts-btn-outline { border-color: var(--ts-ink); color: var(--ts-ink); }
+.ts-btn-outline:hover { background: rgba(62, 54, 48, .07); }
+.ts-btn-ghost { color: var(--ts-ink-2); }
+.ts-btn-ghost:hover { color: var(--ts-ink); background: rgba(62, 54, 48, .07); }
+.ts-btn-danger { background: var(--ts-danger); border-color: var(--ts-danger); color: var(--ts-paper); }
+.ts-btn-danger:hover { filter: brightness(1.08); }
+.ts-btn-danger-outline { border-color: var(--ts-danger); color: var(--ts-danger); }
+.ts-btn-danger-outline:hover { background: rgba(164, 71, 58, .08); }
+.ts-push { margin-left: auto; }
+
+.ts-icon-btn {
+    width: 36px; height: 36px; flex: none; padding: 0; border-radius: 10px;
+    border: 1.5px solid var(--ts-ink); background: transparent; color: var(--ts-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.ts-icon-btn:hover { background: rgba(62, 54, 48, .07); }
+.ts-icon-btn-lg { width: 44px; height: 44px; border-radius: 14px; background: var(--ts-paper); }
+.ts-icon-btn-lg[aria-pressed="true"] { background: var(--ts-ink); color: var(--ts-paper); }
+.ts-icon-btn-sm { width: 36px; height: 36px; border-color: var(--ts-taupe); }
+.ts-nav-btn {
+    width: 44px; height: 44px; padding: 0; border-radius: 12px; border: 1.5px solid var(--ts-taupe);
+    background: transparent; display: inline-flex; align-items: center; justify-content: center; color: var(--ts-ink);
+}
+.ts-nav-btn:hover { border-color: var(--ts-ink); }
+
+.ts-switch {
+    width: 60px; height: 44px; flex: none; padding: 0; border: none; background: transparent;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.ts-switch-track {
+    position: relative; display: block; width: 48px; height: 28px; border-radius: 14px;
+    background: var(--ts-taupe); transition: background-color .18s;
+}
+.ts-switch-knob {
+    position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--ts-paper); transition: left .18s;
+}
+.ts-switch.is-on .ts-switch-track { background: var(--ts-ink); }
+.ts-switch.is-on .ts-switch-knob { left: 24px; }
+
+.ts-enable {
+    height: 44px; padding: 0 12px 0 16px; border-radius: 14px; border: 1.5px solid var(--ts-ink);
+    background: var(--ts-paper); display: inline-flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700;
+}
+.ts-enable .ts-switch-track { width: 44px; height: 26px; border-radius: 13px; }
+.ts-enable .ts-switch-knob { top: 3px; left: 3px; }
+.ts-enable.is-on .ts-switch-track { background: var(--ts-ink); }
+.ts-enable.is-on .ts-switch-knob { left: 21px; }
+
+.ts-chips, .ts-inline-btns, .ts-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.ts-chip {
+    min-height: 34px; padding: 0 12px; border-radius: 999px; border: none;
+    background: var(--ts-blue); font-size: 12.5px; font-weight: 700;
+}
+.ts-chip:hover { filter: brightness(.96); }
+
+.ts-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 8px 8px 16px; border-radius: 14px; background: var(--ts-sand);
+}
+.ts-row-col { flex-direction: column; align-items: stretch; padding: 12px 14px; gap: 10px; }
+.ts-row-tight { padding-top: 4px; padding-bottom: 4px; }
+.ts-row-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ts-row-title { font-size: 14px; font-weight: 700; }
+.ts-row-hint { font-size: 12.5px; font-weight: 500; color: var(--ts-ink-2); line-height: 1.4; }
+
+/* поля ввода */
+.ts-input {
+    width: 100%; min-height: 44px; padding: 0 12px; border-radius: 12px; border: 1.5px solid var(--ts-taupe);
+    background: var(--ts-card); color: var(--ts-ink); font-size: 15px; font-weight: 600;
+    box-shadow: none; outline: none; max-height: none;
+}
+.ts-input:focus { border-color: var(--ts-ink); }
+.ts-input::placeholder { color: var(--ts-taupe); opacity: 1; font-weight: 500; }
+select.ts-input {
+    -webkit-appearance: none; appearance: none; padding-right: 36px; margin: 0;
+    background-color: var(--ts-card);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%233E3630' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; background-size: 12px 8px;
+    text-overflow: ellipsis;
+}
+textarea.ts-input { min-height: 0; padding: 10px 12px; line-height: 1.45; resize: vertical; display: block; }
+.ts-textarea-mono { font-family: var(--ts-mono); font-size: 12.5px; font-weight: 500; }
+.ts-input-num { width: 104px; flex: none; text-align: center; }
+.ts-ui input[type="time"].ts-input { font-variant-numeric: tabular-nums; }
+
+/* ───────────────────────── оверлей и разворот ───────────────────────── */
+
+body.ts-notebook-open { overflow: hidden; }
+
+.ts-overlay {
+    position: fixed; inset: 0; z-index: 9990;
+    display: flex; align-items: center; justify-content: center; padding: 12px;
+    background: rgba(30, 26, 22, .55);
+    opacity: 0; transition: opacity .18s ease;
+}
+.ts-overlay.is-open { opacity: 1; }
+
+.ts-app {
+    position: relative; overflow: hidden;
+    width: min(1280px, 100%); height: min(940px, 100%);
+    display: flex; flex-direction: column; gap: 18px;
+    padding: 26px 30px 24px;
+    border-radius: 22px; background: var(--ts-cream);
+    box-shadow: 0 30px 80px rgba(20, 16, 12, .45);
+    transform: translateY(8px) scale(.99); transition: transform .2s ease;
+}
+.ts-overlay.is-open .ts-app { transform: none; }
+.ts-blob { position: absolute; left: -44%; top: 38%; width: 190%; height: 170%; border-radius: 50%; background: var(--ts-sky); pointer-events: none; }
+
+.ts-header { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; }
+.ts-brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ts-logo { width: 52px; height: 52px; flex: none; border-radius: 16px; background: var(--ts-ink); color: var(--ts-paper); display: flex; align-items: center; justify-content: center; }
+.ts-brand-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ts-title { font-family: var(--ts-display); font-weight: 400; font-size: 30px; line-height: 1.05; }
+.ts-subtitle { font-size: 13px; font-weight: 500; color: var(--ts-ink-2); }
+.ts-header-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+
+.ts-book { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; display: flex; }
+.ts-bookbody { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; }
+.ts-cover { position: absolute; left: 0; right: 0; top: 12px; bottom: 0; border-radius: 24px; background: var(--ts-ink); }
+.ts-spread { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; margin: 0 8px 14px; }
+
+.ts-tabs { position: relative; z-index: 1; flex: none; width: 46px; margin-left: -8px; padding-top: 72px; display: flex; flex-direction: column; gap: 8px; }
+.ts-tab {
+    width: 46px; height: 112px; padding: 0; border: none; border-radius: 0 12px 12px 0;
+    writing-mode: vertical-rl; font-size: 14px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ts-ink); transition: filter .15s;
+}
+.ts-tab-time { background: var(--ts-off); }
+.ts-tab-npc { background: var(--ts-blue); }
+.ts-tab-notes { background: var(--ts-taupe); }
+.ts-tab:hover { filter: brightness(1.04); }
+.ts-tab.is-active { background: var(--ts-paper); }
+
+.ts-page {
+    flex: 1 1 0; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    display: flex; flex-direction: column; gap: 14px;
+    scrollbar-width: thin; scrollbar-color: var(--ts-taupe) transparent;
+}
+.ts-page::-webkit-scrollbar { width: 8px; }
+.ts-page::-webkit-scrollbar-track { background: transparent; }
+.ts-page::-webkit-scrollbar-thumb { background: rgba(167, 154, 138, .65); border-radius: 8px; }
+.ts-page-left { border-radius: 18px 4px 4px 18px; padding: 30px 34px 30px 40px; }
+.ts-page-right { border-radius: 4px 18px 18px 4px; padding: 30px 38px 30px 36px; }
+
+.ts-binding { position: relative; z-index: 2; flex: 0 0 60px; background: var(--ts-binding); }
+.ts-rings { position: absolute; left: -16px; right: -16px; top: 26px; bottom: 26px; display: flex; flex-direction: column; justify-content: space-between; }
+.ts-rings i { display: block; height: 14px; border-radius: 999px; border: 3px solid var(--ts-ink); }
+
+/* ───────────────────────── календарь ───────────────────────── */
+
+.ts-cal-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ts-month { display: flex; align-items: baseline; gap: 10px; }
+.ts-month-name { font-family: var(--ts-display); font-weight: 400; font-size: 44px; line-height: 1.05; }
+.ts-month-year { font-size: 16px; font-weight: 700; color: var(--ts-ink-2); }
+.ts-cal-nav { display: flex; align-items: center; gap: 8px; }
+
+.ts-weekdays, .ts-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.ts-weekdays { margin-top: 6px; font-size: 12px; font-weight: 800; letter-spacing: .06em; color: var(--ts-ink-2); text-align: center; }
+.ts-day {
+    height: 46px; padding: 0; border-radius: 12px; border: 1.5px solid transparent; background: transparent;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    font-size: 15px; font-weight: 700; color: var(--ts-ink);
+}
+.ts-day:hover { background: rgba(62, 54, 48, .06); }
+.ts-day.is-today { background: var(--ts-ink); border-color: var(--ts-ink); color: var(--ts-paper); }
+.ts-day.is-selected { background: var(--ts-blue); border-color: var(--ts-ink); }
+.ts-day-star { color: var(--ts-taupe); }
+.ts-day.is-today .ts-day-star { color: var(--ts-paper); }
+.ts-day-star-space { display: block; height: 10px; }
+
+.ts-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 12.5px; font-weight: 600; color: var(--ts-ink-2); }
+.ts-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ts-legend i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+.ts-legend-now { background: var(--ts-ink); }
+.ts-legend-sel { background: var(--ts-blue); border: 1.5px solid var(--ts-ink); }
+.ts-legend-star { color: var(--ts-taupe); }
+
+.ts-selday { border-top: 1.5px dashed var(--ts-taupe); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.ts-selday-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ts-selday-title { font-size: 30px; line-height: 1; }
+.ts-event {
+    display: flex; align-items: center; gap: 12px; padding: 2px 0; border: none; background: transparent;
+    text-align: left; width: 100%;
+}
+.ts-event-time {
+    min-width: 96px; flex: none; text-align: center; padding: 5px 8px; border-radius: 8px;
+    background: var(--ts-blue); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.ts-event-name { font-size: 15px; font-weight: 600; }
+.ts-event:hover .ts-event-name { text-decoration: underline; text-decoration-color: var(--ts-taupe); }
+.ts-event-repeat { color: var(--ts-ink-2); font-weight: 800; }
+
+.ts-note {
+    position: relative; margin-top: auto; margin-bottom: 6px; padding: 18px 18px 16px; border-radius: 6px;
+    background: var(--ts-blue); transform: rotate(-1deg); box-shadow: 0 8px 18px rgba(62, 54, 48, .14);
+}
+.ts-page > .ts-note:first-child { margin-top: 0; }
+.ts-note-tape { position: absolute; top: -11px; left: 50%; width: 96px; height: 22px; margin-left: -48px; background: rgba(252, 247, 223, .85); transform: rotate(3deg); }
+.ts-note-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.ts-note-title { font-size: 12px; font-weight: 800; letter-spacing: .12em; }
+.ts-note-sub { font-size: 12px; font-weight: 600; }
+.ts-note-text {
+    font-family: var(--ts-mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere;
+    max-height: 300px; overflow-y: auto; scrollbar-width: thin;
+}
+
+/* ───────────────────────── время мира ───────────────────────── */
+
+.ts-time-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.ts-time-date { font-size: 22px; }
+.ts-clock-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ts-clock {
+    padding: 0; border: none; background: transparent; font-family: var(--ts-display); font-size: 92px;
+    line-height: .95; letter-spacing: .01em; color: var(--ts-ink); border-bottom: 2px dashed transparent;
+    font-variant-numeric: tabular-nums;
+}
+.ts-clock:hover { border-bottom-color: var(--ts-taupe); }
+.ts-phase { display: flex; align-items: center; gap: 12px; }
+.ts-phase-icon { width: 56px; height: 56px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.ts-phase-icon.is-night { background: var(--ts-ink); color: var(--ts-paper); }
+.ts-phase-icon.is-day { background: var(--ts-blue); color: var(--ts-ink); }
+.ts-phase-text { display: flex; flex-direction: column; }
+.ts-phase-name { font-family: var(--ts-display); font-size: 26px; line-height: 1.1; }
+.ts-phase-date { font-size: 13px; font-weight: 600; color: var(--ts-ink-2); }
+
+.ts-daybar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.ts-daybar { position: relative; height: 18px; }
+.ts-daybar-fill { position: absolute; inset: 0; border-radius: 9px; border: 1.5px solid var(--ts-ink); overflow: hidden; display: flex; }
+.ts-daybar-fill i { display: block; height: 100%; }
+.ts-daybar-fill .p-night { width: 20.833%; background: var(--ts-ink); }
+.ts-daybar-fill .p-morning { width: 25%; background: var(--ts-blue); }
+.ts-daybar-fill .p-day { width: 25%; background: var(--ts-paper); }
+.ts-daybar-fill .p-evening { width: 20.834%; background: var(--ts-taupe); }
+.ts-daybar-fill .p-late { width: 8.333%; background: var(--ts-ink); }
+.ts-daybar-now { position: absolute; top: -7px; width: 6px; height: 32px; margin-left: -3px; border-radius: 3px; background: var(--ts-ink); border: 2px solid var(--ts-paper); }
+.ts-daybar-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--ts-ink-2); font-variant-numeric: tabular-nums; }
+
+.ts-quick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ts-quick { padding: 0 8px; }
+
+.ts-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.ts-section-titles { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.ts-section-sub { font-size: 22px; }
+
+.ts-npc-list, .ts-npc-rows { display: flex; flex-direction: column; gap: 10px; }
+.ts-npc {
+    display: flex; flex-direction: column; gap: 10px; width: 100%; text-align: left;
+    padding: 11px 14px 12px; border-radius: 14px; border: 1.5px dashed var(--ts-taupe); background: transparent;
+}
+.ts-npc:hover { background: rgba(255, 252, 235, .6); }
+.ts-npc.is-present { border-style: solid; border-color: var(--ts-ink); background: var(--ts-card); }
+.ts-npc.is-hidden { opacity: .7; }
+.ts-npc-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ts-npc-info { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ts-npc-name { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
+.ts-npc-role { font-size: 13px; font-weight: 500; color: var(--ts-ink-2); }
+.ts-npc-place { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--ts-ink-2); min-width: 0; }
+.ts-npc-place svg { flex: none; }
+.ts-npc-place span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ts-npc-bottom { display: flex; align-items: center; gap: 12px; }
+.ts-npc-hours { flex: none; max-width: 52%; text-align: right; font-size: 12.5px; font-weight: 700; color: var(--ts-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.ts-avatar {
+    width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--ts-blue); color: var(--ts-ink);
+    display: flex; align-items: center; justify-content: center; font-family: var(--ts-display); font-size: 19px;
+}
+.ts-npc.is-present .ts-avatar, .ts-avatar.is-present { background: var(--ts-ink); color: var(--ts-paper); }
+.ts-avatar-sm { width: 36px; height: 36px; font-size: 17px; }
+.ts-avatar-lg { width: 64px; height: 64px; font-size: 30px; }
+
+.ts-pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; margin-left: auto;
+    font-size: 12.5px; font-weight: 700; white-space: nowrap;
+}
+.ts-pill-present { background: var(--ts-ink); color: var(--ts-paper); }
+.ts-pill-present .ts-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ts-blue); }
+.ts-pill-away { background: var(--ts-blue); color: var(--ts-ink); }
+.ts-pill-away .ts-pill-dot { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--ts-ink); }
+.ts-pill-off { background: var(--ts-off); color: var(--ts-ink); }
+
+.ts-track { position: relative; flex: 1; min-width: 60px; height: 8px; border-radius: 4px; background: var(--ts-track); }
+.ts-track-seg { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--ts-taupe); }
+.ts-npc.is-present .ts-track-seg { background: var(--ts-ink); }
+.ts-track-now { position: absolute; top: -4px; width: 2px; height: 16px; margin-left: -1px; background: var(--ts-ink); }
+.ts-track-lg { height: 12px; border-radius: 6px; }
+.ts-track-lg .ts-track-seg { border-radius: 6px; }
+.ts-track-lg .ts-track-now { top: -4px; height: 20px; }
+
+.ts-empty { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 1.5px dashed var(--ts-taupe); }
+
+/* ───────────────────────── NPC ───────────────────────── */
+
+.ts-npc-row {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; flex-wrap: wrap;
+    padding: 10px 12px; border-radius: 14px; border: 1.5px dashed var(--ts-taupe); background: transparent;
+}
+.ts-npc-row:hover { background: rgba(255, 252, 235, .6); }
+.ts-npc-row.is-selected { border-style: solid; border-color: var(--ts-ink); background: var(--ts-card); }
+.ts-npc-row.is-hidden { opacity: .7; }
+.ts-npc-hero { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ts-npc-hero-text { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ts-facts { display: flex; flex-direction: column; gap: 8px; }
+.ts-fact { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; font-weight: 500; line-height: 1.4; }
+.ts-fact svg { flex: none; margin-top: 2px; color: var(--ts-ink-2); }
+.ts-week { display: flex; flex-direction: column; gap: 9px; padding: 14px 16px; border-radius: 14px; background: var(--ts-card); border: 1.5px solid var(--ts-ink); }
+.ts-week-row { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: center; gap: 10px; }
+.ts-week-day { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ts-ink-2); }
+.ts-week-row.is-today .ts-week-day { color: var(--ts-ink); }
+.ts-week-row.is-today .ts-track-seg { background: var(--ts-ink); }
+.ts-week-scale .ts-daybar-labels { font-size: 11px; }
+.ts-tools { margin-top: auto; padding-top: 6px; }
+
+/* ───────────────────────── журнал и заметки ───────────────────────── */
+
+.ts-journal { display: flex; flex-direction: column; gap: 4px; }
+.ts-journal-day { font-size: 22px; margin-top: 8px; }
+.ts-jrow {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    padding: 7px 10px; border-radius: 12px; border: none; background: transparent;
+}
+.ts-jrow:hover { background: rgba(62, 54, 48, .06); }
+.ts-jrow .ts-event-time { min-width: 64px; }
+.ts-jrow.is-pending .ts-event-time { background: var(--ts-taupe); color: var(--ts-paper); }
+.ts-jrow-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ts-jrow-delta { font-size: 14px; font-weight: 700; }
+.ts-jrow-meta { font-size: 12.5px; font-weight: 500; color: var(--ts-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ts-jrow-edit { flex: none; color: var(--ts-taupe); }
+.ts-jrow-base { margin-top: 10px; border-top: 1.5px dashed var(--ts-taupe); border-radius: 0; padding-top: 12px; }
+
+.ts-notes-area {
+    flex: 1 1 auto; width: 100%; min-height: 300px; max-height: none; resize: vertical; display: block;
+    padding: 4px 14px; border: none; border-radius: 12px; outline: none; box-shadow: none;
+    font-family: var(--ts-hand); font-size: 22px; font-weight: 500; line-height: 32px; color: var(--ts-ink);
+    background: repeating-linear-gradient(transparent 0 31px, rgba(167, 154, 138, .5) 31px 32px), var(--ts-card);
+    background-attachment: local;
+}
+.ts-notes-area::placeholder { color: var(--ts-taupe); opacity: 1; }
+
+/* ───────────────────────── настройки (блокнот) ───────────────────────── */
+
+.ts-form { display: flex; flex-direction: column; gap: 10px; }
+.ts-form-book .ts-row-col .ts-inline-btns { margin-top: -2px; }
+
+/* ───────────────────────── модальные окна ───────────────────────── */
+
+.ts-modal-overlay {
+    position: fixed; inset: 0; z-index: 10010; display: flex; align-items: center; justify-content: center;
+    padding: 16px; background: rgba(30, 26, 22, .5); opacity: 0; transition: opacity .16s ease;
+}
+.ts-modal-overlay.is-open { opacity: 1; }
+.ts-modal-overlay.is-leaving { opacity: 0; }
+.ts-modal {
+    width: min(560px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); display: flex; flex-direction: column;
+    border-radius: 20px; border: 1.5px solid var(--ts-ink); box-shadow: 0 24px 60px rgba(30, 26, 22, .35);
+    overflow: hidden; transform: translateY(10px); transition: transform .18s ease;
+}
+.ts-modal-overlay.is-open .ts-modal { transform: none; }
+.ts-modal-sm { width: min(440px, 100%); }
+.ts-modal-lg { width: min(640px, 100%); }
+.ts-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 20px 6px 24px; }
+.ts-modal-titles { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ts-modal-title { font-family: var(--ts-display); font-weight: 400; font-size: 26px; line-height: 1.15; overflow-wrap: anywhere; }
+.ts-modal-close { border-color: var(--ts-taupe); }
+.ts-modal-body { padding: 10px 24px 16px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 14px; }
+.ts-modal-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 24px 20px; border-top: 1.5px dashed var(--ts-taupe); }
+
+.ts-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ts-field-label { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ts-ink-2); }
+.ts-field-hint { font-size: 12.5px; font-weight: 500; color: var(--ts-ink-2); line-height: 1.4; }
+.ts-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+.ts-dt { display: flex; flex-direction: column; gap: 8px; }
+.ts-dt-row { display: flex; align-items: center; gap: 8px; }
+.ts-in-day { width: 76px; flex: none; text-align: center; }
+.ts-in-month { flex: 1 1 auto; min-width: 0; }
+.ts-in-year { width: 100px; flex: none; text-align: center; }
+.ts-in-time { width: 132px; flex: none; text-align: center; }
+.ts-dt-weekday { font-family: var(--ts-hand); font-size: 24px; font-weight: 700; }
+
+.ts-source { align-self: flex-start; font-family: var(--ts-mono); font-size: 12.5px; padding: 6px 10px; border-radius: 8px; background: var(--ts-blue); overflow-wrap: anywhere; }
+.ts-compare { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 14px; background: var(--ts-sand); }
+.ts-compare-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: baseline; gap: 10px; }
+.ts-compare-key { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ts-ink-2); }
+.ts-compare-val { font-size: 16px; font-weight: 800; }
+.ts-compare-val.is-muted { color: var(--ts-ink-2); font-weight: 600; }
+.ts-compare-delta { font-size: 13px; font-weight: 700; color: var(--ts-ink-2); }
+.ts-compare-delta.is-new-day { color: var(--ts-danger); }
+.ts-compare-mini { font-size: 13px; font-weight: 600; color: var(--ts-ink-2); line-height: 1.5; }
+.ts-diff { color: var(--ts-ink); }
+
+.ts-shifts { display: flex; flex-direction: column; gap: 10px; }
+.ts-shift { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; border: 1.5px dashed var(--ts-taupe); background: rgba(255, 252, 235, .7); }
+.ts-shift-times { display: flex; align-items: center; gap: 8px; }
+.ts-shift-times .ts-input { width: 120px; flex: none; text-align: center; }
+.ts-shift-times .ts-icon-btn { margin-left: auto; }
+.ts-shift-label { font-size: 13px; font-weight: 700; color: var(--ts-ink-2); }
+.ts-daychips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ts-daychip {
+    min-width: 42px; height: 36px; padding: 0 8px; border-radius: 10px; border: 1.5px solid var(--ts-taupe);
+    background: transparent; font-size: 13px; font-weight: 700; color: var(--ts-ink-2); text-transform: uppercase;
+}
+.ts-daychip.is-on { background: var(--ts-ink); border-color: var(--ts-ink); color: var(--ts-paper); }
+
+/* ───────────────────────── чат ───────────────────────── */
+
+body.ts-hide-tags .mes_text .ts-tag,
+body.ts-hide-tags .mes_text .ts-tag-line,
+body.ts-hide-tags .mes_text br.ts-tag-br { display: none !important; }
+
+.ts-stamp {
+    display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; padding: 1px 8px;
+    border-radius: 999px; font-size: .78em; font-weight: 600; line-height: 1.5; white-space: nowrap;
+    background: rgba(127, 127, 127, .16); opacity: .85; cursor: pointer; user-select: none;
+    font-variant-numeric: tabular-nums; vertical-align: middle;
+}
+.ts-stamp:hover, .ts-stamp:focus-visible { opacity: 1; background: rgba(127, 127, 127, .28); }
+.ts-stamp.is-newday { background: rgba(127, 127, 127, .26); opacity: 1; }
+.ts-stamp.is-pending { background: rgba(214, 160, 70, .35); opacity: 1; }
+
+/* ───────────────────────── плавающие часы ───────────────────────── */
+
+.ts-widget {
+    position: fixed; z-index: 2900; top: calc(var(--topBarBlockSize, 50px) + 12px); right: 12px;
+    display: inline-flex; align-items: center; gap: 9px; padding: 5px 12px 5px 5px;
+    border-radius: 14px; border: 1.5px solid var(--ts-ink); background: var(--ts-paper); color: var(--ts-ink);
+    box-shadow: 0 6px 18px rgba(30, 26, 22, .28); touch-action: none; user-select: none; -webkit-user-select: none;
+    opacity: .94; transition: opacity .15s, box-shadow .15s;
+}
+.ts-widget:hover { opacity: 1; }
+.ts-widget.is-dragging { cursor: grabbing; box-shadow: 0 10px 28px rgba(30, 26, 22, .35); opacity: 1; }
+.ts-widget[hidden] { display: none !important; }
+.ts-widget-icon { width: 32px; height: 32px; flex: none; border-radius: 10px; background: var(--ts-ink); color: var(--ts-paper); display: flex; align-items: center; justify-content: center; }
+.ts-widget-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+.ts-widget-time { font-family: var(--ts-display); font-weight: 400; font-size: 19px; font-variant-numeric: tabular-nums; }
+.ts-widget-date { font-size: 11.5px; font-weight: 700; color: var(--ts-ink-2); }
+
+/* ───────────────────────── панель в «Расширениях» ───────────────────────── */
+
+.ts-st-now { margin: 4px 0 8px; font-weight: 600; }
+.ts-st-open { width: fit-content; margin-bottom: 8px; }
+.ts-st-field { display: flex; flex-direction: column; gap: 3px; margin: 6px 0; }
+.ts-st-field[hidden] { display: none; }
+.ts-st-field select, .ts-st-field input[type="number"], .ts-st-field input[type="time"] { width: 100%; margin: 0; }
+.ts-st-hint { font-size: .85em; opacity: .7; line-height: 1.35; }
+.ts-st-footer { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 10px; }
+
+/* ───────────────────────── адаптив ───────────────────────── */
+
+@media (max-width: 1180px) {
+    .ts-app { padding: 20px 22px 20px; gap: 14px; }
+    .ts-page-left, .ts-page-right { padding: 24px 24px 24px 26px; }
+    .ts-binding { flex-basis: 44px; }
+    .ts-rings { left: -12px; right: -12px; }
+    .ts-clock { font-size: 76px; }
+    .ts-month-name { font-size: 38px; }
+    .ts-day { height: 42px; }
+}
+
+@media (max-width: 980px) {
+    .ts-subtitle { display: none; }
+    .ts-clock { font-size: 64px; }
+    .ts-phase-icon { width: 48px; height: 48px; }
+    .ts-phase-name { font-size: 22px; }
+    .ts-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Телефоны и узкие окна: одна колонка, закладки сверху. */
+@media (max-width: 820px) {
+    .ts-overlay { padding: 0; align-items: stretch; }
+    .ts-app {
+        width: 100%; height: 100%; border-radius: 0; gap: 10px;
+        padding: calc(env(safe-area-inset-top, 0px) + 10px) calc(env(safe-area-inset-right, 0px) + 10px) calc(env(safe-area-inset-bottom, 0px) + 10px) calc(env(safe-area-inset-left, 0px) + 10px);
+    }
+    .ts-header { min-height: 44px; gap: 8px; }
+    .ts-brand { gap: 10px; }
+    .ts-logo { width: 40px; height: 40px; border-radius: 12px; }
+    .ts-logo svg { width: 22px; height: 22px; }
+    .ts-title { font-size: 22px; }
+    .ts-header-actions { gap: 6px; }
+    .ts-enable { padding: 0 8px 0 12px; gap: 8px; }
+
+    .ts-book { flex-direction: column-reverse; }
+    .ts-tabs { width: auto; margin: 0 14px -2px; padding-top: 0; flex-direction: row; gap: 6px; }
+    .ts-tab {
+        writing-mode: horizontal-tb; width: auto; height: 42px; flex: 1 1 0; border-radius: 12px 12px 0 0;
+        font-size: 13px; letter-spacing: .06em;
+    }
+    .ts-cover { top: 0; border-radius: 18px; }
+    .ts-spread {
+        margin: 8px; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; border-radius: 14px;
+        scrollbar-width: none;
+    }
+    .ts-spread::-webkit-scrollbar { display: none; }
+    .ts-page { flex: none; overflow: visible; min-height: auto; }
+    .ts-page-left, .ts-page-right { border-radius: 14px; padding: 20px 16px 22px; }
+    .ts-binding { flex: 0 0 34px; }
+    .ts-rings { left: 22px; right: 22px; top: -9px; bottom: -9px; flex-direction: row; }
+    .ts-rings i { height: auto; width: 14px; }
+    .ts-rings i:nth-child(n + 11) { display: none; }
+
+    /* Во вкладке «Время» сначала часы и NPC, потом календарь. */
+    .ts-spread[data-view="time"] .ts-page-right { order: 1; }
+    .ts-spread[data-view="time"] .ts-binding { order: 2; }
+    .ts-spread[data-view="time"] .ts-page-left { order: 3; }
+    .ts-note { margin-top: 10px; }
+    .ts-tools { margin-top: 4px; }
+    .ts-notes-area { min-height: 260px; }
+
+    .ts-month-name { font-size: 34px; }
+    .ts-clock { font-size: 64px; }
+    .ts-day { height: 40px; border-radius: 10px; font-size: 14px; }
+    .ts-days, .ts-weekdays { gap: 4px; }
+    .ts-selday-title { font-size: 26px; }
+
+    /* Поля ≥16px — iOS не будет зумить страницу при фокусе. */
+    .ts-input { font-size: 16px; }
+    .ts-textarea-mono { font-size: 13px; }
+}
+
+@media (max-width: 420px) {
+    .ts-enable-label { display: none; }
+    .ts-enable { padding: 0 8px; }
+    .ts-title { font-size: 20px; }
+    .ts-clock { font-size: 56px; }
+    .ts-npc-hours { max-width: 48%; }
+    .ts-event-time { min-width: 76px; }
+    .ts-grid2 { grid-template-columns: minmax(0, 1fr); }
+    .ts-shift-times .ts-input { width: 104px; }
+}
+
+/* Модальные окна на телефоне — «шторкой» снизу. */
+@media (max-width: 640px) {
+    .ts-modal-overlay { align-items: flex-end; padding: 0; }
+    .ts-modal, .ts-modal-sm, .ts-modal-lg {
+        width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 20px 20px 0 0; border-bottom: none;
+        transform: translateY(24px);
+    }
+    .ts-modal-head { padding: 16px 16px 4px 18px; }
+    .ts-modal-title { font-size: 23px; }
+    .ts-modal-body { padding: 8px 18px 14px; }
+    .ts-modal-actions { padding: 12px 18px calc(env(safe-area-inset-bottom, 0px) + 14px); }
+    .ts-modal-actions .ts-btn { flex: 1 1 auto; }
+    .ts-modal-actions .ts-push { margin-left: 0; }
+    .ts-in-day { width: 64px; }
+    .ts-in-year { width: 84px; }
+    .ts-dt-row { flex-wrap: wrap; }
+    .ts-in-month { flex: 1 1 120px; }
+    .ts-widget { padding: 4px 10px 4px 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ts-overlay, .ts-app, .ts-modal, .ts-modal-overlay, .ts-switch-track, .ts-switch-knob { transition: none !important; }
+}
